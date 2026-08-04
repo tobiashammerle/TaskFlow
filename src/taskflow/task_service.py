@@ -2,8 +2,8 @@ from taskflow.task import Task
 
 class TaskService:
     """Verwaltet die Aufgaben der Anwendung."""
-    def __init__(self) -> None:
-        self.tasks: list[Task] = []
+    def __init__(self, tasks: list[Task] | None = None) -> None:
+        self.tasks = tasks if tasks is not None else []
 
     def add_task(self, title: str) -> bool:
         """Fügt eine Aufgabe hinzu, wenn der Titel nicht leer ist."""

@@ -18,6 +18,9 @@ dist/
 .Coverage
 htmlcov/
 
+# Local application data
+tasks.json
+
 # Betriebssystemdateien
 .DS_Store
 Thumbs.db

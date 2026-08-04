@@ -1,3 +1,5 @@
+from pathlib import Path
+from taskflow.json_task_repository import JsonTaskRepository
 from taskflow.task_service import TaskService
 
 def show_menu() -> None:
@@ -69,8 +71,10 @@ def remove_task(task_service: TaskService) -> None:
 def main() -> None:
     """Startet die TaskFlow-Anwendung."""
     print ("Willkommen bei TaskFlow!")
-    task_service = TaskService()
-    tasks: list[str] = []
+    repository = JsonTaskRepository(Path("tasks.json"))
+    tasks = repository.load()
+    task_service = TaskService(tasks)
+    
     while True:
         show_menu()
         choice = input("Auswahl: ").strip()
@@ -83,6 +87,7 @@ def main() -> None:
         elif choice == "4":
             remove_task(task_service)
         elif choice == "5":
+            repository.save(task_service.get_tasks())
             print("TaskFlow wird beendet. ")
             break
         else:
