@@ -1,0 +1,14 @@
+# Virtuelle Umgebung
+.venv/
+
+# Python-Cache und kompilierte Dateien
+__pycache__/
+*.py[cod]
+
+# Entwicklungsumgebungen
+.vscode/
+.idea/
+
+# Betriebssystemdateien
+.DS_Store
+Thumbs.db
