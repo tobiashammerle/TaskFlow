@@ -27,7 +27,7 @@ def show_tasks(task_service: TaskService) -> None:
         return
     print("\nAufgaben:")
     for number, task in enumerate(tasks, start=1):
-        print(f"{number}. {task}")
+        print(f"{number}. {task.title}")
 
 def remove_task(task_service: TaskService) -> None:
     """löscht eine Aufgabe anhand ihrer angezeigten Nummer."""
@@ -45,7 +45,7 @@ def remove_task(task_service: TaskService) -> None:
     if removed_task is None:
         print("Diese Aufgabennummer existiert nicht. ")
         return
-    print(f'Die Aufgabe "{removed_task}" wurde gelöscht.')
+    print(f'Die Aufgabe "{removed_task.title}" wurde gelöscht.')
 
 def main() -> None:
     """Startet die TaskFlow-Anwendung."""
