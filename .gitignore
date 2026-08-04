@@ -5,9 +5,18 @@
 __pycache__/
 *.py[cod]
 
+# Build / Packaging
+*.egg-info/
+build/
+dist/
+
 # Entwicklungsumgebungen
 .vscode/
 .idea/
+
+# Test Coverage
+.Coverage
+htmlcov/
 
 # Betriebssystemdateien
 .DS_Store

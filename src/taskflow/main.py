@@ -1,3 +1,4 @@
+from taskflow.task_service import TaskService
 
 def show_menu() -> None:
     """Zeigt das Hauptmenü an."""
@@ -10,17 +11,17 @@ def show_menu() -> None:
     print("3. Aufgabe löschen")
     print("4. Beenden")
 
-def add_task(tasks: list[str]) -> None:
+def add_task(task_service: TaskService) -> None:
     """Fragt eine Aufgabe ab und fügt sie der Liste hinzu"""
     title = input("Titel der Aufgabe: ").strip()
-    if not title:
-        print("Der Titel darf nicht leer sein.")
-        return
-    tasks.append(title)
-    print("Aufgabe wurde hinzugefügt. ")
+    if task_service.add_task(title):
+        print("Aufgabe wurde hinzugefügt. ")
+    else:
+        print("Der Titel darf nicht leer sein. ")
 
-def show_tasks(tasks: list[str]) -> None:
+def show_tasks(task_service: TaskService) -> None:
     """Zeigt alle vorhandenen Aufgaben an. """
+    tasks = task_service.get_tasks()
     if not tasks:
         print("Es sind noch keine Aufgaben vorhanden. ")
         return
@@ -28,36 +29,38 @@ def show_tasks(tasks: list[str]) -> None:
     for number, task in enumerate(tasks, start=1):
         print(f"{number}. {task}")
 
-def remove_task(tasks: list[str]) -> None:
+def remove_task(task_service: TaskService) -> None:
     """löscht eine Aufgabe anhand ihrer angezeigten Nummer."""
+    tasks = task_service.get_tasks()
+
     if not tasks:
         print("Es sind keine Aufgaben zum Löschen vorhanden.")
         return
-    show_tasks(tasks)
+    show_tasks(task_service)
     task_number = input("Nummer der zu löschenden Aufgabe: ").strip()
     if not task_number.isdigit():
         print("Gib eine gültige Zahl ein. ")
         return
-    index = int(task_number)-1
-    if index < 0 or index >= len(tasks):
+    removed_task = task_service.remove_task(int(task_number)-1)
+    if removed_task is None:
         print("Diese Aufgabennummer existiert nicht. ")
         return
-    removed_task = tasks.pop(index)
     print(f'Die Aufgabe "{removed_task}" wurde gelöscht.')
 
 def main() -> None:
     """Startet die TaskFlow-Anwendung."""
     print ("Willkommen bei TaskFlow!")
+    task_service = TaskService()
     tasks: list[str] = []
     while True:
         show_menu()
         choice = input("Auswahl: ").strip()
         if choice == "1":
-            add_task(tasks)
+            add_task(task_service)
         elif choice == "2":
-            show_tasks(tasks)
+            show_tasks(task_service)
         elif choice == "3":
-            remove_task(tasks)
+            remove_task(task_service)
         elif choice == "4":
             print("TaskFlow wird beendet. ")
             break
