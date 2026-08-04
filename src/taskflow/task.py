@@ -6,4 +6,12 @@ class Task:
             raise ValueError("Der Titel darf nicht leer sein. ")
         self.title = cleaned_title
         self.completed = False
-        
+
+    def complete(self) -> None:
+        """Markiert die Aufgabe als erledigt."""
+        self.completed = True
+
+    def __str__(self) -> str:
+        """Gibt eine lesbare Darstellung der Aufgabe zurück."""
+        status = "\u2713" if self.completed else " "
+        return f"[{status}] {self.title}"

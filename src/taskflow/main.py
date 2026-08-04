@@ -27,7 +27,7 @@ def show_tasks(task_service: TaskService) -> None:
         return
     print("\nAufgaben:")
     for number, task in enumerate(tasks, start=1):
-        print(f"{number}. {task.title}")
+        print(f"{number}. {task}")
 
 def remove_task(task_service: TaskService) -> None:
     """löscht eine Aufgabe anhand ihrer angezeigten Nummer."""
