@@ -25,4 +25,15 @@ class Task:
             result += f" - fällig: {self.due_date.isoformat()}"
         return result
 
+    def __repr__(self) -> str:
+        """Gibt eine eindeutige Entwicklerdarstellung zurück."""
+        return (
+            "Task("
+            f"title={self.title!r},"
+            f"completed={self.completed!r},"
+            f"priority={self.priority!r},"
+            f"due_date={self.due_date!r}"
+            ")"
+        )
+
         

@@ -49,3 +49,14 @@ def test_str_includes_due_date() -> None:
     task = Task("Steuererklärung", priority=Priority.HIGH, due_date=date(2026, 8, 31))
     assert (str(task) == "[ ] Steuererklärung - HIGH - fällig: 2026-08-31")
 
+def test_repr_returns_developer_representation() -> None:
+    task = Task("Python lernen", priority=Priority.HIGH, due_date=date(2026, 8, 31))
+    assert repr(task) == (
+        "Task("
+        "title='Python lernen',"
+        "completed=False,"
+        "priority=<Priority.HIGH: 'HIGH'>,"
+        "due_date=datetime.date(2026, 8, 31)"
+                          ")"
+    )
+
