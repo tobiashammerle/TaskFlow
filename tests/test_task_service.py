@@ -1,4 +1,5 @@
 import pytest
+from datetime import date
 from taskflow.priority import Priority
 from taskflow.task import Task
 from taskflow.task_service import TaskService
@@ -102,4 +103,10 @@ def test_constructor_uses_existing_tasks() -> None:
 def test_constructor_creates_empty_task_list() -> None:
     service = TaskService()
     assert service.get_tasks() == []
+
+def test_add_task_with_due_date(service: TaskService) -> None:
+    due_date = date(2026, 8, 31)
+    service.add_task("Steuererklärung", due_date=due_date)
+    task = service.get_tasks()[0]
+    assert task.due_date == due_date
 

@@ -1,4 +1,5 @@
 import json
+from datetime import date
 from taskflow.priority import Priority
 from pathlib import Path
 import pytest
@@ -71,3 +72,12 @@ def test_load_raises_error_for_invalid_json(tmp_path: Path) -> None:
     repository = JsonTaskRepository(file_path)
     with pytest.raises(json.JSONDecodeError):
         repository.load()
+
+def test_save_and_load_preserves_due_date(tmp_path: Path) -> None:
+    repository = JsonTaskRepository(tmp_path / "tasks.json")
+    due_date = date(2026, 8, 31)
+    repository.save([Task("Steuererklärung", due_date=due_date)])
+    loaded_tasks = repository.load()
+    assert len(loaded_tasks) == 1
+    assert loaded_tasks[0].due_date == due_date
+    

@@ -1,3 +1,4 @@
+from datetime import date
 from taskflow.priority import Priority
 from taskflow.task import Task
 
@@ -6,11 +7,11 @@ class TaskService:
     def __init__(self, tasks: list[Task] | None = None) -> None:
         self.tasks = tasks if tasks is not None else []
 
-    def add_task(self, title: str, priority: Priority = Priority.MEDIUM) -> bool:
+    def add_task(self, title: str, priority: Priority = Priority.MEDIUM, due_date: date | None = None) -> bool:
         """Fügt eine Aufgabe hinzu, wenn der Titel nicht leer ist."""
 
         try:
-            task = Task(title, priority=priority)
+            task = Task(title, priority=priority, due_date=due_date)
         except ValueError:
             return False
         self.tasks.append(task)

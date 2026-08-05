@@ -1,4 +1,5 @@
 import json
+from datetime import date
 from taskflow.priority import Priority
 from pathlib import Path
 from taskflow.task import Task
@@ -16,6 +17,8 @@ class JsonTaskRepository:
                 "title": task.title,
                 "completed": task.completed,
                 "priority": task.priority.value,
+                "due_date": (task.due_date.isoformat() if task.due_date is not None else None)
+
             }
             for task in tasks
         ]
@@ -32,7 +35,11 @@ class JsonTaskRepository:
             tasks: list[Task] = []
             for item in data:
                 priority = Priority(item.get("priority", Priority.MEDIUM.value))
-                task = Task(item["title"], priority = priority)
+                due_date_value = item.get("due_date")
+                due_date = (date.fromisoformat(due_date_value) if due_date_value is not None else None)
+                task = Task(item["title"], priority = priority, due_date=due_date)
+                # due_date_value = item.get("due_date")
+                # due_date = (date.fromisoformat(due_date_value) if due_date_value is not None else None)
                 if item["completed"]:
                     task.complete()
                 tasks.append(task)
