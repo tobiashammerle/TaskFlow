@@ -26,7 +26,7 @@ class TaskService:
 
     def get_tasks(self) -> list[Task]:
         """Gibt die aktuelle Aufgabenliste zurück."""
-        return self.tasks
+        return self.tasks.copy()
 
     def complete_task(self, index: int) -> Task | None:
         if index < 0 or index >= len(self.tasks):

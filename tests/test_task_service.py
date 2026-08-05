@@ -110,3 +110,9 @@ def test_add_task_with_due_date(service: TaskService) -> None:
     task = service.get_tasks()[0]
     assert task.due_date == due_date
 
+def test_get_tasks_returns_copy(service: TaskService) -> None:
+    service.add_task("Python lernen")
+    tasks = service.get_tasks()
+    tasks.clear()
+    assert len(service.get_tasks())==1
+    
