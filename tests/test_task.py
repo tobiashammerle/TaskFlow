@@ -60,3 +60,27 @@ def test_repr_returns_developer_representation() -> None:
                           ")"
     )
 
+
+def test_to_dict_returns_expected_dictionary() -> None:
+    task = Task("Python lernen", priority=Priority.HIGH, due_date=date(2026, 8, 31))
+    assert task.to_dict() == {
+        "title": "Python lernen",
+        "completed": False,
+        "priority": "HIGH",
+        "due_date": "2026-08-31",
+    }
+
+def test_from_dict_creates_task() -> None:
+    data = {
+        "title": "Python lernen",
+        "completed": True,
+        "priority": "HIGH",
+        "due_date": "2026-08-31",
+    }
+    task = Task.from_dict(data)
+    assert task.title == "Python lernen"
+    assert task.completed is True
+    assert task.priority == Priority.HIGH
+    assert task.due_date == date(2026, 8, 31)
+
+    

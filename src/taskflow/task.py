@@ -35,5 +35,27 @@ class Task:
             f"due_date={self.due_date!r}"
             ")"
         )
+    def to_dict(self) -> dict[str, object]:
+        """Wandelt die Aufgabe in ein Dictionary um."""
+        return {
+            "title": self.title,
+            "completed": self.completed,
+            "priority": self.priority.value,
+            "due_date": (self.due_date.isoformat() if self.due_date is not None else None),
+        }
 
-        
+    @classmethod
+    def from_dict(cls, data: dict[str, object]) -> "Task":
+        """Erstellt eine Aufgabe aus einem Dictionary."""
+        priority = Priority(str(data.get("priority", Priority.MEDIUM.value)))
+        due_date_value = data.get("due_date")
+        due_date = (date.fromisoformat(str(due_date_value)) if due_date_value is not None else None)
+        task = cls(
+            str(data["title"]),
+            priority=priority,
+            due_date=due_date,
+        )
+        if bool(data.get("completed", False)):
+            task.complete()
+        return task
+    
