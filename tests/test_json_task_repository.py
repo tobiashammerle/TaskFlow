@@ -1,4 +1,5 @@
 import json
+from taskflow.priority import Priority
 from pathlib import Path
 import pytest
 
@@ -31,6 +32,14 @@ def test_save_and_load_completed_task(tmp_path: Path) -> None:
     assert len(loaded_tasks) == 1
     assert loaded_tasks[0].title == "Python lernen"
     assert loaded_tasks[0].completed is True
+
+def test_save_and_load_preserves_priority(tmp_path: Path) -> None:
+    file_path = tmp_path / "tasks.json"
+    repository = JsonTaskRepository(file_path)
+    tasks = [Task("Python lernen", priority=Priority.HIGH)]
+    repository.save(tasks)
+    loaded_tasks = repository.load()
+    assert loaded_tasks[0].priority == Priority.HIGH
 
 def test_save_and_load_multiple_tasks_preserves_order(tmp_path: Path) -> None:
     file_path = tmp_path / "tasks.json"

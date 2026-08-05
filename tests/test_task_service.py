@@ -1,4 +1,5 @@
 import pytest
+from taskflow.priority import Priority
 from taskflow.task import Task
 from taskflow.task_service import TaskService
 
@@ -41,6 +42,12 @@ def test_add_task_strips_title(service: TaskService) -> None:
     service.add_task("   Python lernen  ")
     tasks = service.get_tasks()
     assert tasks[0].title == "Python lernen"
+
+def test_add_task_with_priority() -> None:
+    service = TaskService()
+    service.add_task("Python lernen", priority = Priority.HIGH)
+    task = service.get_tasks()[0]
+    assert task.priority == Priority.HIGH
 
 def test_remove_task_removes_existing_task(service_with_tasks: TaskService) -> None:
     removed_task = service_with_tasks.remove_task(0)

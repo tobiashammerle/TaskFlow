@@ -1,4 +1,5 @@
 import json
+from taskflow.priority import Priority
 from pathlib import Path
 from taskflow.task import Task
 
@@ -14,6 +15,7 @@ class JsonTaskRepository:
             {
                 "title": task.title,
                 "completed": task.completed,
+                "priority": task.priority.value,
             }
             for task in tasks
         ]
@@ -29,7 +31,8 @@ class JsonTaskRepository:
             data = json.load(file)
             tasks: list[Task] = []
             for item in data:
-                task = Task(item["title"])
+                priority = Priority(item.get("priority", Priority.MEDIUM.value))
+                task = Task(item["title"], priority = priority)
                 if item["completed"]:
                     task.complete()
                 tasks.append(task)

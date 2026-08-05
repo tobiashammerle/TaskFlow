@@ -1,3 +1,4 @@
+from taskflow.priority import Priority
 from taskflow.task import Task
 
 class TaskService:
@@ -5,11 +6,11 @@ class TaskService:
     def __init__(self, tasks: list[Task] | None = None) -> None:
         self.tasks = tasks if tasks is not None else []
 
-    def add_task(self, title: str) -> bool:
+    def add_task(self, title: str, priority: Priority = Priority.MEDIUM) -> bool:
         """Fügt eine Aufgabe hinzu, wenn der Titel nicht leer ist."""
 
         try:
-            task = Task(title)
+            task = Task(title, priority=priority)
         except ValueError:
             return False
         self.tasks.append(task)
