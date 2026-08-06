@@ -1,4 +1,5 @@
 from datetime import date
+from taskflow.task_statistics import TaskStatistics
 from taskflow.filter_type import FilterType
 from taskflow.priority import Priority
 from taskflow.task import Task
@@ -75,5 +76,11 @@ class TaskService:
         normalized_search_text = search_text.strip().casefold()
         return [task for task in self.tasks if normalized_search_text in task.title.casefold()]
 
+    def get_statistics(self) -> None:
+        return TaskStatistics(total_tasks=len(self.tasks),
+                              completed_tasks=sum(task.completed for task in self.tasks),
+                              open_tasks=sum(not task.completed for task in self.tasks),
+                              high_priority_tasks=sum(task.priority==Priority.HIGH for task in self.tasks)
+                              )
     
     

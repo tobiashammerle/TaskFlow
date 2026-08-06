@@ -1,5 +1,6 @@
 import pytest
 from datetime import date
+from taskflow.task_statistics import TaskStatistics
 from taskflow.filter_type import FilterType
 from taskflow.sort_field import SortField
 from taskflow.priority import Priority
@@ -288,3 +289,25 @@ def test_search_tasks_returns_empty_list_when_nothing_matches(service: TaskServi
     service.add_task("Python lernen")
     results = service.search_tasks("Docker")
     assert results == []
+
+def test_get_statistics_for_empty_service(service: TaskService) -> None:
+    statistics = service.get_statistics()
+    assert statistics == TaskStatistics(
+        total_tasks=0,
+        completed_tasks=0,
+        open_tasks=0,
+        high_priority_tasks=0,
+    )
+
+def test_get_statistics(service: TaskService) -> None:
+    service.add_task("Python lernen", priority=Priority.HIGH)
+    service.add_task("Git üben", priority=Priority.MEDIUM)
+    service.add_task("Docker lernen", priority=Priority.HIGH)
+    service.complete_task(1)
+    statistics = service.get_statistics()
+    assert statistics == TaskStatistics(
+        total_tasks=3,
+        completed_tasks=1,
+        open_tasks=2,
+        high_priority_tasks=2,
+    )
