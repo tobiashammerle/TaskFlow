@@ -1,5 +1,6 @@
 import pytest
 from datetime import date
+from taskflow.filter_type import FilterType
 from taskflow.sort_field import SortField
 from taskflow.priority import Priority
 from taskflow.task import Task
@@ -172,4 +173,92 @@ def test_sort_tasks_by_due_date_without_due_date(service: TaskService) -> None:
         "Steuererklärung",
         "Python lernen",
     ]
-    
+
+def test_filter_completed_tasks(service: TaskService) -> None:
+    service.add_task("Python lernen")
+    service.add_task("Git üben")
+    service.get_tasks()[1].complete()
+    completed = service.filter_tasks(FilterType.COMPLETED)
+    assert len(completed) == 1
+    assert completed[0].title == "Git üben"
+
+def test_filter_open_tasks(service: TaskService) -> None:
+    service.add_task("Python lernen")
+    service.add_task("Git üben")
+    service.complete_task(1)
+    open_tasks = service.filter_tasks(FilterType.OPEN)
+    assert len(open_tasks) == 1
+    assert open_tasks[0].title == "Python lernen"
+    assert open_tasks[0].completed is False
+
+def test_filter_all_tasks(service: TaskService) -> None:
+    service.add_task("Python lernen")
+    service.add_task("Git üben")
+    service.complete_task(1)
+    all_tasks = service.filter_tasks(FilterType.ALL)
+    assert len(all_tasks) == 2
+
+def test_filter_high_priority_tasks(service: TaskService) -> None:
+    service.add_task("Python lernen", priority=Priority.HIGH)
+    service.add_task("Git üben", priority=Priority.LOW)
+    high_tasks = service.filter_tasks(FilterType.HIGH_PRIORITY)
+    assert len(high_tasks) == 1
+    assert high_tasks[0].title == "Python lernen"
+    assert high_tasks[0].priority == Priority.HIGH
+
+@pytest.mark.parametrize(
+    ("filter_type", "priority", "expected_title"),
+    [
+        (
+            FilterType.HIGH_PRIORITY,
+            Priority.HIGH,
+            "Hohe Aufgabe",
+        ),
+        (
+            FilterType.MEDIUM_PRIORITY,
+            Priority.MEDIUM,
+            "Mittlere Aufgabe",
+        ),
+        (
+            FilterType.LOW_PRIORITY,
+            Priority.LOW,
+            "Niedrige Aufgabe"
+        ),
+    ]
+)
+def test_filter_tasks_by_priority(service: TaskService,
+                                  filter_type: FilterType,
+                                  priority: Priority,
+                                  expected_title: str) -> None:
+    service.add_task(
+        "Hohe Aufgabe",
+        priority=Priority.HIGH,
+    )
+    service.add_task(
+        "Mittlere Aufgabe",
+        priority=Priority.MEDIUM,
+    )
+    service.add_task(
+        "Niedrige Aufgabe",
+        priority=Priority.LOW,
+    )
+    filtered_tasks = service.filter_tasks(filter_type)
+    assert len(filtered_tasks) == 1
+    assert filtered_tasks[0].title == expected_title
+    assert filtered_tasks[0].priority == priority
+
+def test_filter_tasks_with_due_date(service: TaskService) -> None:
+    service.add_task("Steuererklärung", due_date=date(2026, 8, 31))
+    service.add_task("Python lernen")
+    filtered_tasks = service.filter_tasks(FilterType.WITH_DUE_DATE)
+    assert len(filtered_tasks) == 1
+    assert filtered_tasks[0].title == "Steuererklärung"
+    assert filtered_tasks[0].due_date == date(2026, 8, 31)
+
+def test_filter_tasks_without_due_date(service: TaskService) -> None:
+    service.add_task("Steuererklärung", due_date=date(2026, 8, 31))
+    service.add_task("Python lernen")
+    filtered_tasks = service.filter_tasks(FilterType.WITHOUT_DUE_DATE)
+    assert len(filtered_tasks) == 1
+    assert filtered_tasks[0].title == "Python lernen"
+    assert filtered_tasks[0].due_date is None

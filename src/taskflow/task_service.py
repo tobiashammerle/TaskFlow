@@ -1,4 +1,5 @@
 from datetime import date
+from taskflow.filter_type import FilterType
 from taskflow.priority import Priority
 from taskflow.task import Task
 from taskflow.sort_field import SortField
@@ -52,4 +53,20 @@ class TaskService:
             self.tasks.sort(key=lambda task: (task.due_date is None,
                                               task.due_date), reverse=reverse)
           
+    def filter_tasks(self, filter_type: FilterType) -> list[Task]:
+        if filter_type == FilterType.COMPLETED:
+            return [task for task in self.tasks if task.completed]
+        elif filter_type == FilterType.OPEN:
+            return [task for task in self.tasks if not task.completed]
+        elif filter_type == FilterType.HIGH_PRIORITY:
+            return [task for task in self.tasks if task.priority==Priority.HIGH]
+        elif filter_type == FilterType.MEDIUM_PRIORITY:
+            return [task for task in self.tasks if task.priority==Priority.MEDIUM]
+        elif filter_type == FilterType.LOW_PRIORITY:
+            return [task for task in self.tasks if task.priority==Priority.LOW]
+        elif filter_type == FilterType.WITH_DUE_DATE:
+            return [task for task in self.tasks if task.due_date is not None]
+        elif filter_type == FilterType.WITHOUT_DUE_DATE:
+            return [task for task in self.tasks if task.due_date is None]
+        return self.tasks.copy()
     
