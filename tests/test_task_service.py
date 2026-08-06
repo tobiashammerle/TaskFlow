@@ -1,5 +1,6 @@
 import pytest
 from datetime import date
+from taskflow.sort_field import SortField
 from taskflow.priority import Priority
 from taskflow.task import Task
 from taskflow.task_service import TaskService
@@ -115,4 +116,60 @@ def test_get_tasks_returns_copy(service: TaskService) -> None:
     tasks = service.get_tasks()
     tasks.clear()
     assert len(service.get_tasks())==1
+
+def test_sort_tasks_by_title(service: TaskService) -> None:
+    service.add_task("C")
+    service.add_task("A")
+    service.add_task("B")
+    service.sort_tasks(SortField.TITLE)
+    titles = [task.title for task in service.get_tasks()]
+    assert titles == [
+        "A",
+        "B",
+        "C",
+    ]
+
+def test_sort_task_by_priority(service: TaskService) -> None:
+    service.add_task("Mittlere Aufgabe", priority=Priority.MEDIUM)
+    service.add_task("Niedrige Aufgabe", priority=Priority.LOW)
+    service.add_task("Hohe Aufgabe", priority=Priority.HIGH)
+
+    service.sort_tasks(SortField.PRIORITY)
+    priorities = [
+        task.priority for task in service.get_tasks()
+    ]
+
+    assert priorities == [
+        Priority.HIGH,
+        Priority.MEDIUM,
+        Priority.LOW,
+    ]
+
+def test_sort_tasks_by_due_date(service: TaskService) -> None:
+    service.add_task("Python lernen", due_date=date(2026, 8, 20))
+    service.add_task("Steuererklärung", due_date=date(2026, 8, 15))
+    service.add_task("Git üben", due_date=date(2026, 8, 10))
+
+    service.sort_tasks(SortField.DUE_DATE)
+    titles = [task.title for task in service.get_tasks()]
+    assert titles == [
+        "Git üben",
+        "Steuererklärung",
+        "Python lernen",
+    ]
+
+def test_sort_tasks_by_due_date_without_due_date(service: TaskService) -> None:
+    service.add_task("Python lernen")
+    service.add_task("Steuererklärung", due_date=date(2026, 8, 15))
+    service.add_task("Git üben", due_date=date(2026, 8, 10))
+    service.sort_tasks(SortField.DUE_DATE)
+    titles = [
+        task.title for task in service.get_tasks()
+    ]
+
+    assert titles == [
+        "Git üben",
+        "Steuererklärung",
+        "Python lernen",
+    ]
     

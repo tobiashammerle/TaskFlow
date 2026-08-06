@@ -1,6 +1,7 @@
 from datetime import date
 from taskflow.priority import Priority
 from taskflow.task import Task
+from taskflow.sort_field import SortField
 
 class TaskService:
     """Verwaltet die Aufgaben der Anwendung."""
@@ -34,4 +35,21 @@ class TaskService:
         task = self.tasks[index]
         task.complete()
         return task
+
+    def sort_tasks(self, field: SortField, reverse: bool = False) -> None:
+        if field == SortField.TITLE:
+            self.tasks.sort(key=lambda task: task.title, reverse=reverse)
+        elif field == SortField.PRIORITY:
+            priority_order = {
+                Priority.HIGH: 1,
+                Priority.MEDIUM: 2,
+                Priority.LOW: 3,
+            }
+            self.tasks.sort(key=lambda task: priority_order[task.priority],
+                            reverse=reverse,
+                            )
+        elif field == SortField.DUE_DATE:
+            self.tasks.sort(key=lambda task: (task.due_date is None,
+                                              task.due_date), reverse=reverse)
+          
     
