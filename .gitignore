@@ -1,6 +1,9 @@
 # Virtuelle Umgebung
 .venv/
 
+# Test- und Laufzeitdaten
+*.db
+
 # Python-Cache und kompilierte Dateien
 __pycache__/
 *.py[cod]

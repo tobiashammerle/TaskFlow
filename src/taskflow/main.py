@@ -1,11 +1,13 @@
 from taskflow.logging_config import configure_logging
 import logging
 from pathlib import Path
+from taskflow.sqlite_task_repository import SqliteTaskRepository
 from taskflow.json_task_repository import JsonTaskRepository
 from taskflow.task_service import TaskService
 
 logger = logging.getLogger(__name__)
-
+repository = SqliteTaskRepository(Path("tasks.db"))
+repository.initialize_database()
 
 def show_menu() -> None:
     """Zeigt das Hauptmenü an."""
