@@ -1,9 +1,12 @@
+import logging
 from datetime import date
 from taskflow.task_statistics import TaskStatistics
 from taskflow.filter_type import FilterType
 from taskflow.priority import Priority
 from taskflow.task import Task
 from taskflow.sort_field import SortField
+
+logger = logging.getLogger(__name__)
 
 class TaskService:
     """Verwaltet die Aufgaben der Anwendung."""
@@ -18,6 +21,7 @@ class TaskService:
         except ValueError:
             return False
         self.tasks.append(task)
+        logger.info("Aufgabe erstellt: %s", task.title)
         return True
    
 
@@ -25,7 +29,10 @@ class TaskService:
         """Entfernt eine Aufgabe anhand ihres Index. """
         if index < 0 or index >= len(self.tasks):
             return None
-        return self.tasks.pop(index)
+        task = self.tasks.pop(index)
+        logger.info("Aufgabe gelöscht: %s", task.title)
+        return task
+    
 
     def get_tasks(self) -> list[Task]:
         """Gibt die aktuelle Aufgabenliste zurück."""
@@ -36,6 +43,7 @@ class TaskService:
             return None
         task = self.tasks[index]
         task.complete()
+        logger.info("Aufgabe abgeschlossen: %s", task.title)
         return task
 
     def sort_tasks(self, field: SortField, reverse: bool = False) -> None:

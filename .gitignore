@@ -21,6 +21,10 @@ htmlcov/
 # Local application data
 tasks.json
 
+# Logs
+logs/
+*.log
+
 # Betriebssystemdateien
 .DS_Store
 Thumbs.db

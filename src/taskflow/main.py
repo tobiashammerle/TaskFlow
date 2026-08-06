@@ -1,6 +1,11 @@
+from taskflow.logging_config import configure_logging
+import logging
 from pathlib import Path
 from taskflow.json_task_repository import JsonTaskRepository
 from taskflow.task_service import TaskService
+
+logger = logging.getLogger(__name__)
+
 
 def show_menu() -> None:
     """Zeigt das Hauptmenü an."""
@@ -70,7 +75,10 @@ def remove_task(task_service: TaskService) -> None:
 
 def main() -> None:
     """Startet die TaskFlow-Anwendung."""
-    print ("Willkommen bei TaskFlow!")
+    configure_logging()
+    logger.info("TaskFlow gestartet")
+
+    #print ("Willkommen bei TaskFlow!")
     repository = JsonTaskRepository(Path("tasks.json"))
     tasks = repository.load()
     task_service = TaskService(tasks)
@@ -88,6 +96,7 @@ def main() -> None:
             remove_task(task_service)
         elif choice == "5":
             repository.save(task_service.get_tasks())
+            logger.info("TaskFlow beendet")
             print("TaskFlow wird beendet. ")
             break
         else:
