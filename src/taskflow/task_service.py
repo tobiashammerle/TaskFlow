@@ -69,4 +69,11 @@ class TaskService:
         elif filter_type == FilterType.WITHOUT_DUE_DATE:
             return [task for task in self.tasks if task.due_date is None]
         return self.tasks.copy()
+
+
+    def search_tasks(self, search_text: str) -> list[Task]:
+        normalized_search_text = search_text.strip().casefold()
+        return [task for task in self.tasks if normalized_search_text in task.title.casefold()]
+
+    
     

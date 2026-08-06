@@ -262,3 +262,29 @@ def test_filter_tasks_without_due_date(service: TaskService) -> None:
     assert len(filtered_tasks) == 1
     assert filtered_tasks[0].title == "Python lernen"
     assert filtered_tasks[0].due_date is None
+
+def test_search_tasks_by_title(service: TaskService) -> None:
+    service.add_task("Python lernen")
+    service.add_task("Git lernen")
+    service.add_task("Python testen")
+    results = service.search_tasks("python")
+    assert len(results) == 2
+    assert results[0].title == "Python lernen"
+    assert results[1].title == "Python testen"
+
+def test_search_tasks_is_case_insensitive(service: TaskService) -> None:
+    service.add_task("Python lernen")
+    results = service.search_tasks("PYTHON")
+    assert len(results) == 1
+    assert results[0].title == "Python lernen"
+
+def test_search_tasks_with_empty_text_returns_all_tasks(service: TaskService) -> None:
+    service.add_task("Python lernen")
+    service.add_task("Git lernen")
+    results = service.search_tasks("")
+    assert len(results) == 2
+
+def test_search_tasks_returns_empty_list_when_nothing_matches(service: TaskService) -> None:
+    service.add_task("Python lernen")
+    results = service.search_tasks("Docker")
+    assert results == []
