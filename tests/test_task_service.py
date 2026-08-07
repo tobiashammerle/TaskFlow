@@ -6,6 +6,7 @@ from taskflow.sort_field import SortField
 from taskflow.priority import Priority
 from taskflow.task import Task
 from taskflow.task_service import TaskService
+from taskflow.exceptions import EmptyTitleError
 
 
 def test_add_task_adds_new_task(service: TaskService) -> None:
@@ -24,24 +25,15 @@ def test_add_task_adds_new_task(service: TaskService) -> None:
             "\n",
         ]
 )
-def test_add_task_returns_false_for_invalid_title(service: TaskService, title: str) -> None:
-    result = service.add_task(title)
-    assert result is False
-    assert service.get_tasks() == []
+def test_add_task_raises_empty_title_error_for_invalid_title(service: TaskService, title: str) -> None:
+    with pytest.raises(EmptyTitleError):
+        service.add_task(title)
 
-def test_add_task_returns_true_for_valid_title(service: TaskService) -> None:
+def test_add_task_adds_task_for_valid_title(service: TaskService) -> None:
     result = service.add_task("Python lernen")
-    assert result is True
-
-# def test_add_task_returns_false_for_empty_title(service: TaskService) -> None:
-#     result = service.add_task("")
-#     assert result is False
-#     assert service.get_tasks() == []
-
-# def test_add_task_returns_false_for_whitespace_title(service: TaskService) -> None:
-#     result = service.add_task("     ")
-#     assert result is False
-#     assert service.get_tasks() == []
+    tasks = service.get_tasks()
+    assert len(tasks) == 1
+    assert tasks[0].title == "Python lernen"
 
 def test_add_task_strips_title(service: TaskService) -> None:
     service.add_task("   Python lernen  ")

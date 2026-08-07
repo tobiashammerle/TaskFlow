@@ -2,6 +2,8 @@ from datetime import date
 from taskflow.priority import Priority
 import pytest
 from taskflow.task import Task
+from taskflow.exceptions import EmptyTitleError
+
 def test_complete_marks_task_as_completed() -> None:
     task = Task("Python lernen")
     task.complete()
@@ -24,8 +26,8 @@ def test_task_stores_cleaned_title() -> None:
     task = Task("   Python lernen   ")
     assert task.title == "Python lernen"
 
-def test_empty_title_raises_value_error() -> None:
-    with pytest.raises(ValueError):
+def test_empty_title_raises_empty_title_error() -> None:
+    with pytest.raises(EmptyTitleError):
         Task("    ")
 
 def test_task_has_medium_priority_by_default() -> None:

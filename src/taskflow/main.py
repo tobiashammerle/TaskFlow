@@ -6,6 +6,7 @@ from taskflow.json_task_repository import JsonTaskRepository
 from taskflow.task_service import TaskService
 from taskflow.task_repository import TaskRepository
 from taskflow.task import Task
+from taskflow.exceptions import EmptyTitleError
 
 
 logger = logging.getLogger(__name__)
@@ -27,10 +28,13 @@ def show_menu() -> None:
 def add_task(task_service: TaskService) -> None:
     """Fragt eine Aufgabe ab und fügt sie der Liste hinzu"""
     title = input("Titel der Aufgabe: ").strip()
-    if task_service.add_task(title):
-        print("Aufgabe wurde hinzugefügt. ")
-    else:
-        print("Der Titel darf nicht leer sein. ")
+    try:
+        task_service.add_task(title)
+    except EmptyTitleError:
+        print("Der Titel darf nicht leer sein.")
+        return
+    print("Aufgabe wurde hinzugefügt. ")
+    
 
 def show_tasks(task_service: TaskService) -> None:
     """Zeigt alle vorhandenen Aufgaben an. """
@@ -91,8 +95,7 @@ def main() -> None:
     repository = SqliteTaskRepository(Path("tasks.db"))
     repository.initialize_database()
     # repository = JsonTaskRepository(Path("tasks.json"))
-    tasks = repository.load()
-    task_service = TaskService(tasks)
+    task_service = TaskService(repository)
     
     while True:
         show_menu()

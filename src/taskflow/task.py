@@ -1,5 +1,7 @@
 from taskflow.priority import Priority
 from datetime import date
+from taskflow.exceptions import EmptyTitleError
+
 
 
 class Task:
@@ -7,7 +9,7 @@ class Task:
     def __init__(self, title: str, priority: Priority = Priority.MEDIUM, due_date: date | None = None) -> None:
         cleaned_title = title.strip()
         if not cleaned_title:
-            raise ValueError("Der Titel darf nicht leer sein. ")
+            raise EmptyTitleError("Der Titel darf nicht leer sein. ")
         self.title = cleaned_title
         self.completed = False
         self.priority = priority
