@@ -5,13 +5,17 @@ from taskflow.filter_type import FilterType
 from taskflow.priority import Priority
 from taskflow.task import Task
 from taskflow.sort_field import SortField
+from taskflow.task_repository import TaskRepository
+
 
 logger = logging.getLogger(__name__)
 
 class TaskService:
     """Verwaltet die Aufgaben der Anwendung."""
-    def __init__(self, tasks: list[Task] | None = None) -> None:
-        self.tasks = tasks if tasks is not None else []
+    def __init__(self, repository: TaskRepository) -> None:
+        self.repository = repository
+        self.tasks = repository.load()
+        
 
     def add_task(self, title: str, priority: Priority = Priority.MEDIUM, due_date: date | None = None) -> bool:
         """Fügt eine Aufgabe hinzu, wenn der Titel nicht leer ist."""

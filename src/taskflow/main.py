@@ -4,10 +4,13 @@ from pathlib import Path
 from taskflow.sqlite_task_repository import SqliteTaskRepository
 from taskflow.json_task_repository import JsonTaskRepository
 from taskflow.task_service import TaskService
+from taskflow.task_repository import TaskRepository
+from taskflow.task import Task
+
 
 logger = logging.getLogger(__name__)
-repository = SqliteTaskRepository(Path("tasks.db"))
-repository.initialize_database()
+# repository = SqliteTaskRepository(Path("tasks.db"))
+# repository.initialize_database()
 
 def show_menu() -> None:
     """Zeigt das Hauptmenü an."""
@@ -75,13 +78,19 @@ def remove_task(task_service: TaskService) -> None:
         return
     print(f'Die Aufgabe "{removed_task.title}" wurde gelöscht.')
 
+def load_tasks(repository: TaskRepository) -> list[Task]:
+    return repository.load()
+
+
 def main() -> None:
     """Startet die TaskFlow-Anwendung."""
     configure_logging()
     logger.info("TaskFlow gestartet")
 
     #print ("Willkommen bei TaskFlow!")
-    repository = JsonTaskRepository(Path("tasks.json"))
+    repository = SqliteTaskRepository(Path("tasks.db"))
+    repository.initialize_database()
+    # repository = JsonTaskRepository(Path("tasks.json"))
     tasks = repository.load()
     task_service = TaskService(tasks)
     
