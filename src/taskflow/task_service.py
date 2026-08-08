@@ -23,6 +23,7 @@ class TaskService:
 
         task = Task(title, priority=priority, due_date=due_date)
         self.tasks.append(task)
+        self.repository.save(self.tasks)
         logger.info("Aufgabe erstellt: %s", task.title)
    
 
@@ -31,6 +32,7 @@ class TaskService:
         if index < 0 or index >= len(self.tasks):
             raise TaskNotFoundError(f"Keine Aufgabe mit Index {index} gefunden.")
         task = self.tasks.pop(index)
+        self.repository.save(self.tasks)
         logger.info("Aufgabe gelöscht: %s", task.title)
         return task
     
@@ -44,6 +46,7 @@ class TaskService:
             raise TaskNotFoundError(f"Keine Aufgabe mit Index {index} gefunden.")
         task = self.tasks[index]
         task.complete()
+        self.repository.save(self.tasks)
         logger.info("Aufgabe abgeschlossen: %s", task.title)
         return task
 
