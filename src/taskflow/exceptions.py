@@ -10,5 +10,8 @@ class TaskNotFoundError(TaskFlowError):
 class DuplicateTaskError(TaskFlowError):
     """Die Aufgabe existiert bereits."""
 
+class ConfigurationError(TaskFlowError):
+    """Die Anwendungskonfiguration ist ungültig."""
+
 
 
