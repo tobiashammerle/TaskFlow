@@ -49,7 +49,7 @@ def test_save_and_load_multiple_tasks_preserves_order(tmp_path: Path) -> None:
     second_task = Task("Git lernen")
     second_task.complete()
     repository.save([first_task, second_task])
-    loaded_tasks = repository.load()
+    loaded_tasks = repository.get_all()
     assert len(loaded_tasks) == 2
     assert loaded_tasks[0].title == "Python lernen"
     assert loaded_tasks[0].completed is False
