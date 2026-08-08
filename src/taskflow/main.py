@@ -2,7 +2,6 @@ from taskflow.logging_config import configure_logging
 import logging
 from taskflow.repository_factory import create_repository
 from taskflow.task_service import TaskService
-from taskflow.task_repository import TaskRepository
 from taskflow.exceptions import EmptyTitleError
 from taskflow.exceptions import TaskNotFoundError, EmptyTitleError
 
