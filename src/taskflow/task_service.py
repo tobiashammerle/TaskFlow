@@ -6,6 +6,7 @@ from taskflow.priority import Priority
 from taskflow.task import Task
 from taskflow.sort_field import SortField
 from taskflow.task_repository import TaskRepository
+from taskflow.exceptions import TaskNotFoundError
 
 
 logger = logging.getLogger(__name__)
@@ -28,7 +29,7 @@ class TaskService:
     def remove_task(self, index: int) -> Task | None:
         """Entfernt eine Aufgabe anhand ihres Index. """
         if index < 0 or index >= len(self.tasks):
-            return None
+            raise TaskNotFoundError(f"Keine Aufgabe mit Index {index} gefunden.")
         task = self.tasks.pop(index)
         logger.info("Aufgabe gelöscht: %s", task.title)
         return task
@@ -40,7 +41,7 @@ class TaskService:
 
     def complete_task(self, index: int) -> Task | None:
         if index < 0 or index >= len(self.tasks):
-            return None
+            raise TaskNotFoundError(f"Keine Aufgabe mit Index {index} gefunden.")
         task = self.tasks[index]
         task.complete()
         logger.info("Aufgabe abgeschlossen: %s", task.title)

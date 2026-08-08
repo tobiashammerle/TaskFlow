@@ -6,7 +6,7 @@ from taskflow.sort_field import SortField
 from taskflow.priority import Priority
 from taskflow.task import Task
 from taskflow.task_service import TaskService
-from taskflow.exceptions import EmptyTitleError
+from taskflow.exceptions import EmptyTitleError, TaskNotFoundError
 
 
 def test_add_task_adds_new_task(service: TaskService) -> None:
@@ -53,16 +53,16 @@ def test_remove_task_removes_existing_task(service_with_tasks: TaskService) -> N
     assert len(tasks) == 1
     assert tasks[0].title == "Git lernen"
 
-def test_remove_task_returns_none_for_negative_index(service: TaskService) -> None:
+def test_remove_task_raises_task_not_found_error_for_negative_index(service: TaskService) -> None:
     service.add_task("Python lernen")
-    removed_task = service.remove_task(-1)
-    assert removed_task is None
+    with pytest.raises(TaskNotFoundError):
+        service.remove_task(-1)
     assert len(service.get_tasks()) == 1
 
-def test_remove_task_returns_none_for_index_that_is_too_large(service: TaskService) -> None:
+def test_remove_task_raises_task_not_found_error_for_index_that_is_too_large(service: TaskService) -> None:
     service.add_task("Python lernen")
-    removed_task = service.remove_task(1)
-    assert removed_task is None
+    with pytest.raises(TaskNotFoundError):
+        service.remove_task(1)
     assert len(service.get_tasks()) == 1
 
 def test_complete_task_marks_task_as_completed(service: TaskService) -> None:
@@ -73,16 +73,16 @@ def test_complete_task_marks_task_as_completed(service: TaskService) -> None:
     assert completed_task.completed is True
     assert tasks[0].completed is True
 
-def test_complete_task_returns_none_for_negative_index(service: TaskService) -> None:
+def test_complete_task_raises_task_not_found_error_for_negative_index(service: TaskService) -> None:
     service.add_task("Python lernen")
-    completed_task = service.complete_task(-1)
-    assert completed_task is None
+    with pytest.raises(TaskNotFoundError):
+        service.complete_task(-1)
     assert service.get_tasks()[0].completed is False
 
-def test_complete_task_returns_none_for_index_that_is_too_large(service: TaskService) -> None:
+def test_complete_task_raises_task_not_found_error_for_index_that_is_too_large(service: TaskService) -> None:
     service.add_task("Python lernen")
-    completed_task = service.complete_task(1)
-    assert completed_task is None
+    with pytest.raises(TaskNotFoundError):
+        service.complete_task(1)
     assert service.get_tasks()[0].completed is False
 
 def test_constructor_loads_tasks_from_repository(repository_with_tasks) -> None:
