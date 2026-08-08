@@ -36,5 +36,8 @@ class JsonTaskRepository:
             logger.info("%d Aufgaben geladen", len(tasks))
             return tasks
 
+    def get_all(self) -> list[Task]:
+        return self.load()
+    
 
     

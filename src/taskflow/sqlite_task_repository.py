@@ -79,5 +79,7 @@ class SqliteTaskRepository:
             tasks.append(task)
         return tasks
     
-            
+    def get_all(self) -> list[Task]:
+        return self.load()
+                
             

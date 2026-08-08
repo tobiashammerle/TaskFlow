@@ -15,7 +15,7 @@ class TaskService:
     """Verwaltet die Aufgaben der Anwendung."""
     def __init__(self, repository: TaskRepository) -> None:
         self.repository = repository
-        self.tasks = repository.load()
+        self.tasks = repository.get_all()
 
 
     def add_task(self, title: str, priority: Priority = Priority.MEDIUM, due_date: date | None = None) -> None:

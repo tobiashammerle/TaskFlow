@@ -1,12 +1,11 @@
 from taskflow.logging_config import configure_logging
 import logging
-from pathlib import Path
-from taskflow.sqlite_task_repository import SqliteTaskRepository
-from taskflow.json_task_repository import JsonTaskRepository
+from taskflow.repository_factory import create_repository
 from taskflow.task_service import TaskService
 from taskflow.task_repository import TaskRepository
-from taskflow.task import Task
 from taskflow.exceptions import EmptyTitleError
+from taskflow.exceptions import TaskNotFoundError, EmptyTitleError
+
 
 
 logger = logging.getLogger(__name__)
@@ -57,9 +56,10 @@ def complete_task(task_service: TaskService) -> None:
     if not task_number.isdigit():
         print("Bitte gib eine gültige Zahl ein. ")
         return
-    completed_task = task_service.complete_task(int(task_number)-1)
-    if completed_task is None:
-        print("Diese Aufgabennummer existiert nicht.")
+    try:
+        completed_task = task_service.complete_task(int(task_number)-1)
+    except TaskNotFoundError as error:
+        print(error)
         return
     print(f'Aufgabe "{completed_task.title}" wurde als erledigt markiert')
 
@@ -76,14 +76,14 @@ def remove_task(task_service: TaskService) -> None:
     if not task_number.isdigit():
         print("Gib eine gültige Zahl ein. ")
         return
-    removed_task = task_service.remove_task(int(task_number)-1)
-    if removed_task is None:
-        print("Diese Aufgabennummer existiert nicht. ")
+    try:
+        removed_task = task_service.remove_task(int(task_number)-1)
+    except TaskNotFoundError as error:
+        print(error)
         return
     print(f'Die Aufgabe "{removed_task.title}" wurde gelöscht.')
 
-def load_tasks(repository: TaskRepository) -> list[Task]:
-    return repository.load()
+
 
 
 def main() -> None:
@@ -92,8 +92,8 @@ def main() -> None:
     logger.info("TaskFlow gestartet")
 
     #print ("Willkommen bei TaskFlow!")
-    repository = SqliteTaskRepository(Path("tasks.db"))
-    repository.initialize_database()
+    repository = create_repository()
+
     # repository = JsonTaskRepository(Path("tasks.json"))
     task_service = TaskService(repository)
     

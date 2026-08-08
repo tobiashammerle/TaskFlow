@@ -10,6 +10,9 @@ class FakeTaskRepository:
         return self.tasks.copy()
     def save(self, tasks: list[Task]) -> None:
         self.tasks = tasks.copy()
+    def get_all(self) -> list[Task]:
+        return self.load()
+    
 
 @pytest.fixture
 def service() -> TaskService:
