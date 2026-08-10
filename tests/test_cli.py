@@ -53,7 +53,7 @@ def service() -> FakeTaskService:
     return FakeTaskService()
 
 @pytest.fixture
-def service_with_tasks() -> FakeTaskService:
+def fake_service_with_tasks() -> FakeTaskService:
     return FakeTaskService(tasks=[Task("Python lernen"), Task("Git lernen")])
 
 
@@ -81,19 +81,19 @@ def test_show_task_prints_message_when_no_tasks(service, capsys) -> None:
     captured = capsys.readouterr()
     assert "Es sind noch keine Aufgaben vorhanden." in captured.out
 
-def test_show_tasks_prints_existing_tasks(service_with_tasks, capsys) -> None:
+def test_show_tasks_prints_existing_tasks(fake_service_with_tasks, capsys) -> None:
     #service = FakeTaskService(tasks = [Task("Python lernen"), Task("Git lernen")])
-    show_tasks(service_with_tasks)
+    show_tasks(fake_service_with_tasks)
     captured = capsys.readouterr()
     assert "Python lernen" in captured.out
     assert "Git lernen" in captured.out
 
-def test_complete_task_passes_correct_index_to_service(service_with_tasks, monkeypatch, capsys) -> None:
+def test_complete_task_passes_correct_index_to_service(fake_service_with_tasks, monkeypatch, capsys) -> None:
     #service = FakeTaskService(tasks=[Task("Python lernen"), Task("Git lernen")])
     mock_inputs(monkeypatch, ["2"])
-    complete_task(service_with_tasks)
+    complete_task(fake_service_with_tasks)
     captured = capsys.readouterr()
-    assert service_with_tasks.completed_index == 1
+    assert fake_service_with_tasks.completed_index == 1
     assert "Git lernen" in captured.out
 
 def test_complete_task_prints_error_when_task_not_found(monkeypatch, capsys) -> None:
@@ -103,12 +103,12 @@ def test_complete_task_prints_error_when_task_not_found(monkeypatch, capsys) -> 
     captured = capsys.readouterr()
     assert "Keine Aufgabe mit Index" in captured.out
 
-def test_remove_task_passes_correct_index_to_service(service_with_tasks, monkeypatch, capsys):
+def test_remove_task_passes_correct_index_to_service(fake_service_with_tasks, monkeypatch, capsys):
     #service = FakeTaskService(tasks=[Task("Python lernen"), Task("Git lernen")])
     mock_inputs(monkeypatch, ["2"])
-    remove_task(service_with_tasks)
+    remove_task(fake_service_with_tasks)
     captured = capsys.readouterr()
-    assert service_with_tasks.removed_index == 1
+    assert fake_service_with_tasks.removed_index == 1
     assert 'Die Aufgabe "Git lernen" wurde gelöscht.' in captured.out
 
 def test_remove_task_prints_error_when_task_not_found(monkeypatch, capsys):
