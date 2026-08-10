@@ -57,7 +57,7 @@ class SqliteTaskRepository:
                 ),
                 )
 
-    def load(self) -> list[Task]:
+    def get_all(self) -> list[Task]:
         with sqlite3.connect(self.database_path) as connection:
             cursor = connection.cursor()
             cursor.execute(
@@ -79,7 +79,5 @@ class SqliteTaskRepository:
             tasks.append(task)
         return tasks
     
-    def get_all(self) -> list[Task]:
-        return self.load()
                 
             

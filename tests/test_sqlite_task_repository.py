@@ -28,10 +28,10 @@ def test_save_and_load_tasks(tmp_path: Path) -> None:
     assert loaded_tasks[1].priority == Priority.LOW
     assert loaded_tasks[1].due_date is None
 
-def test_load_returns_empty_list_for_empty_database(tmp_path: Path) -> None:
+def test_get_all_returns_empty_list_for_empty_database(tmp_path: Path) -> None:
     repository = SqliteTaskRepository(tmp_path / "tasks.db")
     repository.initialize_database()
-    loaded_tasks = repository.load()
+    loaded_tasks = repository.get_all()
     assert loaded_tasks == []
 
 def test_save_overwrites_existing_tasks(tmp_path: Path) -> None:
@@ -39,7 +39,7 @@ def test_save_overwrites_existing_tasks(tmp_path: Path) -> None:
     repository.initialize_database()
     repository.save([Task("Alte Aufgabe")])
     repository.save([Task("Neue Aufgabe")])
-    loaded_tasks = repository.load()
+    loaded_tasks = repository.get_all()
     assert len(loaded_tasks) == 1
     assert loaded_tasks[0].title == "Neue Aufgabe"
 
