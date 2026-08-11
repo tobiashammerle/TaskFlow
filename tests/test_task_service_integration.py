@@ -37,6 +37,21 @@ def test_task_survives_new_service_instance(tmp_path: Path) -> None:
     assert task_service_2.get_tasks()[0].title == "Python lernen"
 
 
+def test_completed_task_state_persists_in_sqlite(tmp_path: Path) -> None:
+    database_path = tmp_path /"test_tasks.db"
+    repository_1 = SqliteTaskRepository(database_path)
+    repository_1.initialize_database()
+    task_service_1 = TaskService(repository_1)
+    task_service_1.add_task("Python lernen")
+    task_service_1.complete_task(0)
+
+    repository_2 = SqliteTaskRepository(database_path)
+    repository_2.initialize_database()
+    task_service_2 = TaskService(repository_2)
+    assert len(task_service_2.get_tasks()) == 1
+    assert task_service_2.get_tasks()[0].title == "Python lernen"
+    assert task_service_2.get_tasks()[0].completed is True
+
 
 
     
