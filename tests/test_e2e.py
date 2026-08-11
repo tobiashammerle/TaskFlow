@@ -17,3 +17,18 @@ def test_user_can_add_task_through_cli_and_persist_it(tmp_path: Path, monkeypatc
     tasks = repository.get_all()
     assert len(tasks) == 1
     assert tasks[0].title == "Python lernen"
+def test_user_can_add_and_view_task_through_cli(tmp_path: Path, monkeypatch, capsys) -> None:
+    database_path = tmp_path /"test_tasks.db"
+    repository = SqliteTaskRepository(database_path)
+    repository.initialize_database()
+    task_service = TaskService(repository)
+    inputs = iter(["1", "Python lernen", "2", "5"])
+    monkeypatch.setattr(
+        "builtins.input",
+        lambda _: next(inputs),
+    )
+    run_cli(task_service)
+    captured = capsys.readouterr()
+    assert "Aufgabe wurde hinzugefügt." in captured.out
+    assert "Python lernen" in captured.out
+    
