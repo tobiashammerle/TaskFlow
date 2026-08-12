@@ -26,7 +26,7 @@ class SqliteTaskRepository:
                 priority TEXT NOT NULL,
                 due_date TEXT
             )
-            """ 
+            """
         )
         connection.commit()
         connection.close()
@@ -50,13 +50,16 @@ class SqliteTaskRepository:
                     )
                     VALUES (?, ?, ?, ?)
                     """,
-                (
-                    task.title,
-                    int(task.completed),
-                    task.priority.value,
-                    (task.due_date.isoformat() if 
-                     task.due_date is not None else None)
-                ),
+                    (
+                        task.title,
+                        int(task.completed),
+                        task.priority.value,
+                        (
+                            task.due_date.isoformat()
+                            if task.due_date is not None
+                            else None
+                        ),
+                    ),
                 )
 
     def get_all(self) -> list[Task]:
@@ -73,13 +76,16 @@ class SqliteTaskRepository:
         tasks: list[Task] = []
 
         for title, completed, priority, due_date_value in rows:
-            task = Task(title=title, priority=Priority(priority), 
-                        due_date=(date.fromisoformat(due_date_value) if due_date_value is not None else None),
-                        )
+            task = Task(
+                title=title,
+                priority=Priority(priority),
+                due_date=(
+                    date.fromisoformat(due_date_value)
+                    if due_date_value is not None
+                    else None
+                ),
+            )
             if bool(completed):
                 task.complete()
             tasks.append(task)
         return tasks
-    
-                
-            

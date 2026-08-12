@@ -7,4 +7,3 @@ class TaskStatistics:
     completed_tasks: int
     open_tasks: int
     high_priority_tasks: int
-    

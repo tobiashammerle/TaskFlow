@@ -14,7 +14,8 @@ def load_repository_type(file_path: Path) -> RepositoryType:
     except (KeyError, ValueError) as error:
         raise ConfigurationError("Ungültige Repository-Konfiguration.") from error
 
+
 REPOSITORY = load_repository_type(Path("settings.ini"))
 
 
-#REPOSITORY = "json"
+# REPOSITORY = "json"

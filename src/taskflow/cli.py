@@ -18,9 +18,7 @@ def run_cli(task_service: TaskService) -> None:
             print("TaskFlow wird beendet. ")
             break
         else:
-            print("Ungültige Auswahl. ")    
-    
-
+            print("Ungültige Auswahl. ")
 
 
 def show_menu() -> None:
@@ -35,6 +33,7 @@ def show_menu() -> None:
     print("4. Aufgabe löschen")
     print("5. Beenden")
 
+
 def add_task(task_service: TaskService) -> None:
     """Fragt eine Aufgabe ab und fügt sie der Liste hinzu"""
     title = input("Titel der Aufgabe: ").strip()
@@ -44,9 +43,10 @@ def add_task(task_service: TaskService) -> None:
         print("Der Titel darf nicht leer sein.")
         return
     print("Aufgabe wurde hinzugefügt. ")
-    
+
+
 def show_tasks(task_service: TaskService) -> None:
-    """Zeigt alle vorhandenen Aufgaben an. """
+    """Zeigt alle vorhandenen Aufgaben an."""
     tasks = task_service.get_tasks()
     if not tasks:
         print("Es sind noch keine Aufgaben vorhanden. ")
@@ -54,6 +54,7 @@ def show_tasks(task_service: TaskService) -> None:
     print("\nAufgaben:")
     for number, task in enumerate(tasks, start=1):
         print(f"{number}. {task}")
+
 
 def complete_task(task_service: TaskService) -> None:
     """Liest eine Aufgabennummer ein und markiert die Aufgabe als erledigt."""
@@ -67,11 +68,12 @@ def complete_task(task_service: TaskService) -> None:
         print("Bitte gib eine gültige Zahl ein. ")
         return
     try:
-        completed_task = task_service.complete_task(int(task_number)-1)
+        completed_task = task_service.complete_task(int(task_number) - 1)
     except TaskNotFoundError as error:
         print(error)
         return
     print(f'Aufgabe "{completed_task.title}" wurde als erledigt markiert')
+
 
 def remove_task(task_service: TaskService) -> None:
     """löscht eine Aufgabe anhand ihrer angezeigten Nummer."""
@@ -86,7 +88,7 @@ def remove_task(task_service: TaskService) -> None:
         print("Gib eine gültige Zahl ein. ")
         return
     try:
-        removed_task = task_service.remove_task(int(task_number)-1)
+        removed_task = task_service.remove_task(int(task_number) - 1)
     except TaskNotFoundError as error:
         print(error)
         return

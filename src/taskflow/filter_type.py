@@ -13,4 +13,3 @@ class FilterType(Enum):
 
     WITH_DUE_DATE = "with_due_date"
     WITHOUT_DUE_DATE = "without_due_dat"
-

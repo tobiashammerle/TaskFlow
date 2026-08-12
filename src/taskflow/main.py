@@ -19,5 +19,6 @@ def main() -> None:
     run_cli(task_service)
     logger.info("TaskFlow beendet")
 
+
 if __name__ == "__main__":
     main()

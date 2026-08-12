@@ -16,5 +16,3 @@ def create_repository() -> TaskRepository:
     if REPOSITORY == RepositoryType.JSON:
         return JsonTaskRepository(Path("tasks.json"))
     raise ConfigurationError(f"Unbekanntes Repository: {REPOSITORY}")
-
-

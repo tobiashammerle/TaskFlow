@@ -9,17 +9,20 @@ from taskflow.task_service import TaskService
 
 @pytest.fixture
 def sqlite_repository(tmp_path: Path) -> SqliteTaskRepository:
-    database = tmp_path /"test_tasks.db"
+    database = tmp_path / "test_tasks.db"
     repository = SqliteTaskRepository(database)
     repository.initialize_database()
     return repository
+
 
 @pytest.fixture
 def task_service(sqlite_repository) -> TaskService:
     return TaskService(sqlite_repository)
 
 
-def test_user_can_add_task_through_cli_and_persist_it(sqlite_repository, task_service, monkeypatch) -> None:
+def test_user_can_add_task_through_cli_and_persist_it(
+    sqlite_repository, task_service, monkeypatch
+) -> None:
     inputs = iter(["1", "Python lernen", "5"])
     monkeypatch.setattr(
         "builtins.input",
@@ -30,7 +33,10 @@ def test_user_can_add_task_through_cli_and_persist_it(sqlite_repository, task_se
     assert len(tasks) == 1
     assert tasks[0].title == "Python lernen"
 
-def test_user_can_add_and_view_task_through_cli(sqlite_repository, task_service, monkeypatch, capsys) -> None:
+
+def test_user_can_add_and_view_task_through_cli(
+    sqlite_repository, task_service, monkeypatch, capsys
+) -> None:
     inputs = iter(["1", "Python lernen", "2", "5"])
     monkeypatch.setattr(
         "builtins.input",
@@ -40,8 +46,11 @@ def test_user_can_add_and_view_task_through_cli(sqlite_repository, task_service,
     captured = capsys.readouterr()
     assert "Aufgabe wurde hinzugefügt." in captured.out
     assert "Python lernen" in captured.out
-    
-def test_user_can_complete_task_through_cli(sqlite_repository, task_service, monkeypatch, capsys) -> None:
+
+
+def test_user_can_complete_task_through_cli(
+    sqlite_repository, task_service, monkeypatch, capsys
+) -> None:
     inputs = iter(["1", "Python lernen", "3", "1", "2", "5"])
     monkeypatch.setattr(
         "builtins.input",
@@ -55,7 +64,10 @@ def test_user_can_complete_task_through_cli(sqlite_repository, task_service, mon
     tasks = sqlite_repository.get_all()
     assert tasks[0].completed is True
 
-def test_user_can_remove_task_through_cli(sqlite_repository, task_service, monkeypatch, capsys) -> None:
+
+def test_user_can_remove_task_through_cli(
+    sqlite_repository, task_service, monkeypatch, capsys
+) -> None:
     inputs = iter(["1", "Python lernen", "4", "1", "2", "5"])
     monkeypatch.setattr(
         "builtins.input",
@@ -68,5 +80,3 @@ def test_user_can_remove_task_through_cli(sqlite_repository, task_service, monke
     assert 'Die Aufgabe "Python lernen" wurde gelöscht.' in captured.out
     tasks = sqlite_repository.get_all()
     assert len(tasks) == 0
-
-
