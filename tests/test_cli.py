@@ -103,6 +103,13 @@ def test_complete_task_passes_correct_index_to_service(fake_service_with_tasks, 
     assert fake_service_with_tasks.completed_index == 1
     assert "Git lernen" in captured.out
 
+def test_complete_task_prints_error_when_no_existing_tasks(capsys) -> None:
+    service = FakeTaskService()
+    complete_task(service)
+    captured = capsys.readouterr()
+    assert "Es sind keine weiteren Aufgaben zum Erledigen vorhanden" in captured.out
+
+
 def test_complete_task_prints_error_when_task_not_found(monkeypatch, capsys) -> None:
     service = FakeFailingCompleteTaskService()
     mock_inputs(monkeypatch, ["5"])
@@ -117,6 +124,13 @@ def test_remove_task_passes_correct_index_to_service(fake_service_with_tasks, mo
     captured = capsys.readouterr()
     assert fake_service_with_tasks.removed_index == 1
     assert 'Die Aufgabe "Git lernen" wurde gelöscht.' in captured.out
+
+def test_remove_task_prints_error_when_no_existing_tasks(capsys) -> None:
+    service = FakeTaskService()
+    remove_task(service)
+    captured = capsys.readouterr()
+    assert "Es sind keine Aufgaben zum Löschen vorhanden." in captured.out
+
 
 def test_remove_task_prints_error_when_task_not_found(monkeypatch, capsys):
     service = FakeFailingRemoveTaskService()
