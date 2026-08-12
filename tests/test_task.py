@@ -1,8 +1,11 @@
 from datetime import date
-from taskflow.priority import Priority
+
 import pytest
-from taskflow.task import Task
+
 from taskflow.exceptions import EmptyTitleError
+from taskflow.priority import Priority
+from taskflow.task import Task
+
 
 def test_complete_marks_task_as_completed() -> None:
     task = Task("Python lernen")

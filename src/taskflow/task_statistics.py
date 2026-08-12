@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 
+
 @dataclass
 class TaskStatistics:
     total_tasks: int

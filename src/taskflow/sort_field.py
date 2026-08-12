@@ -1,4 +1,6 @@
 from enum import Enum
+
+
 class SortField(Enum):
     TITLE = "title"
     PRIORITY = "priority"

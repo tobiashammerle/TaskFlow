@@ -1,13 +1,13 @@
 import logging
 from datetime import date
-from taskflow.task_statistics import TaskStatistics
+
+from taskflow.exceptions import TaskNotFoundError
 from taskflow.filter_type import FilterType
 from taskflow.priority import Priority
-from taskflow.task import Task
 from taskflow.sort_field import SortField
+from taskflow.task import Task
 from taskflow.task_repository import TaskRepository
-from taskflow.exceptions import TaskNotFoundError
-
+from taskflow.task_statistics import TaskStatistics
 
 logger = logging.getLogger(__name__)
 

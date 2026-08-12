@@ -1,8 +1,11 @@
-import pytest
 from pathlib import Path
+
+import pytest
+
 from taskflow.config import load_repository_type
-from taskflow.repository_type import RepositoryType
 from taskflow.exceptions import ConfigurationError
+from taskflow.repository_type import RepositoryType
+
 
 def test_load_repository_type_returns_sqlite(tmp_path: Path) -> None:
     # Arrange

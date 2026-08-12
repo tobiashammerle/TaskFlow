@@ -5,6 +5,7 @@ from taskflow.priority import Priority
 from taskflow.sqlite_task_repository import SqliteTaskRepository
 from taskflow.task import Task
 
+
 def test_save_and_load_tasks(tmp_path: Path) -> None:
     database_path = tmp_path / "tasks.db"
     repository = SqliteTaskRepository(database_path)

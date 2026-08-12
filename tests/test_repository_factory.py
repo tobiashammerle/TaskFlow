@@ -1,10 +1,11 @@
 import pytest
-from taskflow.repository_type import RepositoryType
-from taskflow.exceptions import ConfigurationError
+
 from taskflow import repository_factory
-from taskflow.repository_factory import create_repository
-from taskflow.sqlite_task_repository import SqliteTaskRepository
+from taskflow.exceptions import ConfigurationError
 from taskflow.json_task_repository import JsonTaskRepository
+from taskflow.repository_type import RepositoryType
+from taskflow.sqlite_task_repository import SqliteTaskRepository
+
 
 def test_create_repository_returns_sqlite_repository(
         monkeypatch: pytest.MonkeyPatch) -> None:

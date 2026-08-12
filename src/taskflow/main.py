@@ -1,8 +1,9 @@
-from taskflow.logging_config import configure_logging
 import logging
+
+from taskflow.cli import run_cli
+from taskflow.logging_config import configure_logging
 from taskflow.repository_factory import create_repository
 from taskflow.task_service import TaskService
-from taskflow.cli import run_cli
 
 logger = logging.getLogger(__name__)
 

@@ -1,8 +1,10 @@
 import sqlite3
 from datetime import date
 from pathlib import Path
+
 from taskflow.priority import Priority
 from taskflow.task import Task
+
 
 class SqliteTaskRepository:
     """Speichert Aufgaben in einer SQLite-Datenbank."""

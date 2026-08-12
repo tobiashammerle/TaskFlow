@@ -1,7 +1,7 @@
-from taskflow.priority import Priority
 from datetime import date
-from taskflow.exceptions import EmptyTitleError
 
+from taskflow.exceptions import EmptyTitleError
+from taskflow.priority import Priority
 
 
 class Task:

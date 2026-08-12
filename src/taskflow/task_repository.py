@@ -1,5 +1,7 @@
 from typing import Protocol
+
 from taskflow.task import Task
+
 
 class TaskRepository(Protocol):
     """ Schnittstelle für Task-Repositories."""

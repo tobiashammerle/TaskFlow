@@ -1,7 +1,8 @@
 import configparser
 from pathlib import Path
-from taskflow.repository_type import RepositoryType
+
 from taskflow.exceptions import ConfigurationError
+from taskflow.repository_type import RepositoryType
 
 
 def load_repository_type(file_path: Path) -> RepositoryType:

@@ -1,9 +1,12 @@
-from taskflow.cli import add_task, show_tasks, complete_task, remove_task, run_cli
+from unittest.mock import create_autospec
+
+import pytest
+
+from taskflow.cli import add_task, complete_task, remove_task, run_cli, show_tasks
 from taskflow.exceptions import EmptyTitleError, TaskNotFoundError
 from taskflow.task import Task
-import pytest
-from unittest.mock import Mock, create_autospec
 from taskflow.task_service import TaskService
+
 
 def mock_inputs(monkeypatch, values: list[str]) -> None:
     inputs = iter(values)
@@ -117,7 +120,7 @@ def test_complete_task_prints_error_when_task_not_found(monkeypatch, capsys) -> 
     captured = capsys.readouterr()
     assert "Keine Aufgabe mit Index" in captured.out
 
-def test_remove_task_passes_correct_index_to_service(fake_service_with_tasks, monkeypatch, capsys):
+def test_remove_task_with_fake_service_removes_selected_task(fake_service_with_tasks, monkeypatch, capsys):
     #service = FakeTaskService(tasks=[Task("Python lernen"), Task("Git lernen")])
     mock_inputs(monkeypatch, ["2"])
     remove_task(fake_service_with_tasks)

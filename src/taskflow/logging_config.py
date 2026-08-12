@@ -1,6 +1,7 @@
 import logging
 from pathlib import Path
 
+
 def configure_logging() -> None:
     """Konfiguriert das Logging für TaskFlow."""
     log_directory = Path("logs")

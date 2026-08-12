@@ -1,5 +1,5 @@
-from taskflow.task_service import TaskService
 from taskflow.exceptions import EmptyTitleError, TaskNotFoundError
+from taskflow.task_service import TaskService
 
 
 def run_cli(task_service: TaskService) -> None:

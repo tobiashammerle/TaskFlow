@@ -1,5 +1,7 @@
 from unittest.mock import Mock
+
 import taskflow.main as main_module
+
 
 def test_main_connects_application_components(monkeypatch) -> None:
     repository = Mock()

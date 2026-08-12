@@ -1,11 +1,13 @@
 import json
 from datetime import date
-from taskflow.priority import Priority
 from pathlib import Path
+
 import pytest
 
 from taskflow.json_task_repository import JsonTaskRepository
+from taskflow.priority import Priority
 from taskflow.task import Task
+
 
 def test_get_all_returns_empty_list_when_file_does_not_exist(tmp_path: Path) -> None:
     file_path = tmp_path /"tasks.json"

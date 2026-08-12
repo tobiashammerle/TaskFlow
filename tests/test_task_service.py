@@ -1,12 +1,14 @@
-import pytest
 from datetime import date
-from taskflow.task_statistics import TaskStatistics
+
+import pytest
+
+from taskflow.exceptions import EmptyTitleError, TaskNotFoundError
 from taskflow.filter_type import FilterType
-from taskflow.sort_field import SortField
 from taskflow.priority import Priority
+from taskflow.sort_field import SortField
 from taskflow.task import Task
 from taskflow.task_service import TaskService
-from taskflow.exceptions import EmptyTitleError, TaskNotFoundError
+from taskflow.task_statistics import TaskStatistics
 from tests.fakes import FakeTaskRepository
 
 # class FakeTaskRepository:
@@ -59,7 +61,7 @@ def test_add_task_raises_empty_title_error_for_invalid_title(service: TaskServic
         service.add_task(title)
 
 def test_add_task_adds_task_for_valid_title(service: TaskService) -> None:
-    result = service.add_task("Python lernen")
+    service.add_task("Python lernen")
     tasks = service.get_tasks()
     assert len(tasks) == 1
     assert tasks[0].title == "Python lernen"

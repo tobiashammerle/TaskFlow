@@ -1,8 +1,9 @@
+from pathlib import Path
+
+from taskflow.sqlite_task_repository import SqliteTaskRepository
 from taskflow.task_service import TaskService
 from tests.fakes import FakeTaskRepository
-from taskflow.sqlite_task_repository import SqliteTaskRepository
-from pathlib import Path
-from taskflow.task import Task
+
 
 def test_add_task_saves_task_in_repository():
     repository = FakeTaskRepository() # erstelle Repository (siehe settings.ini)

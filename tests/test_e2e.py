@@ -1,8 +1,11 @@
-import pytest
 from pathlib import Path
+
+import pytest
+
+from taskflow.cli import run_cli
 from taskflow.sqlite_task_repository import SqliteTaskRepository
 from taskflow.task_service import TaskService
-from taskflow.cli import run_cli
+
 
 @pytest.fixture
 def sqlite_repository(tmp_path: Path) -> SqliteTaskRepository:

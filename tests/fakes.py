@@ -1,5 +1,6 @@
 from taskflow.task import Task
 
+
 class FakeTaskRepository:
     def __init__(self) -> None:
         self.tasks: list[Task]=[]
