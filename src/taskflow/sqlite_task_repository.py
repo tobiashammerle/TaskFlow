@@ -1,6 +1,7 @@
 import sqlite3
 from datetime import date
 from pathlib import Path
+from uuid import UUID
 
 from taskflow.priority import Priority
 from taskflow.task import Task
@@ -21,6 +22,7 @@ class SqliteTaskRepository:
             tasks (
                     id INTEGER PRIMARY KEY
                 AUTOINCREMENT,
+                task_id TEXT NOT NULL UNIQUE,
                 title TEXT NOT NULL,
                 completed INTEGER NOT NULL,
                 priority TEXT NOT NULL,
@@ -43,14 +45,16 @@ class SqliteTaskRepository:
                 cursor.execute(
                     """
                     INSERT INTO tasks (
+                    task_id,
                     title,
                     completed,
                     priority,
                     due_date
                     )
-                    VALUES (?, ?, ?, ?)
+                    VALUES (?, ?, ?, ?, ?)
                     """,
                     (
+                        str(task.id),
                         task.title,
                         int(task.completed),
                         task.priority.value,
@@ -67,7 +71,7 @@ class SqliteTaskRepository:
             cursor = connection.cursor()
             cursor.execute(
                 """
-                SELECT title, completed, priority, due_date
+                SELECT task_id, title, completed, priority, due_date
                 FROM tasks
                 ORDER BY id
                 """
@@ -75,7 +79,7 @@ class SqliteTaskRepository:
             rows = cursor.fetchall()
         tasks: list[Task] = []
 
-        for title, completed, priority, due_date_value in rows:
+        for task_id, title, completed, priority, due_date_value in rows:
             task = Task(
                 title=title,
                 priority=Priority(priority),
@@ -84,6 +88,7 @@ class SqliteTaskRepository:
                     if due_date_value is not None
                     else None
                 ),
+                task_id=UUID(task_id),
             )
             if bool(completed):
                 task.complete()
