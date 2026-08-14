@@ -1,10 +1,25 @@
 from datetime import date
+from uuid import UUID, uuid4
 
 import pytest
 
 from taskflow.exceptions import EmptyTitleError
 from taskflow.priority import Priority
 from taskflow.task import Task
+
+
+def test_new_tasks_get_different_ids():
+    task1 = Task("Python lernen")
+    task2 = Task("Git üben")
+    assert task1.id != task2.id
+    assert isinstance(task1.id, UUID)
+    assert isinstance(task2.id, UUID)
+
+
+def test_task_keeps_provided_id():
+    provided_id = uuid4()
+    task = Task("Python lernen", task_id=provided_id)
+    assert task.id == provided_id
 
 
 def test_complete_marks_task_as_completed() -> None:
@@ -80,11 +95,19 @@ def test_repr_returns_developer_representation() -> None:
 def test_to_dict_returns_expected_dictionary() -> None:
     task = Task("Python lernen", priority=Priority.HIGH, due_date=date(2026, 8, 31))
     assert task.to_dict() == {
+        "id": str(task.id),
         "title": "Python lernen",
         "completed": False,
         "priority": "HIGH",
         "due_date": "2026-08-31",
     }
+
+
+def test_to_dict_and_from_dict_preserve_id():
+    original = Task("Python lernen")
+    data = original.to_dict()
+    restored = Task.from_dict(data)
+    assert restored.id == original.id
 
 
 def test_from_dict_creates_task() -> None:

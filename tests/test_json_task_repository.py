@@ -88,3 +88,12 @@ def test_save_and_get_all_preserves_due_date(tmp_path: Path) -> None:
     loaded_tasks = repository.get_all()
     assert len(loaded_tasks) == 1
     assert loaded_tasks[0].due_date == due_date
+
+
+def test_save_and_get_all_preserves_task_id(tmp_path: Path) -> None:
+    file_path = tmp_path / "tasks.json"
+    repository = JsonTaskRepository(file_path)
+    original = Task("Python lernen")
+    repository.save([original])
+    loaded_tasks = repository.get_all()
+    assert loaded_tasks[0].id == original.id
