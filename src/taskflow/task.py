@@ -1,4 +1,5 @@
 from datetime import date
+from uuid import UUID, uuid4
 
 from taskflow.exceptions import EmptyTitleError
 from taskflow.priority import Priority
@@ -12,11 +13,13 @@ class Task:
         title: str,
         priority: Priority = Priority.MEDIUM,
         due_date: date | None = None,
+        task_id: UUID | None = None,
     ) -> None:
         cleaned_title = title.strip()
         if not cleaned_title:
             raise EmptyTitleError("Der Titel darf nicht leer sein. ")
         self.title = cleaned_title
+        self.id = task_id or uuid4()
         self.completed = False
         self.priority = priority
         self.due_date = due_date
@@ -47,6 +50,7 @@ class Task:
     def to_dict(self) -> dict[str, object]:
         """Wandelt die Aufgabe in ein Dictionary um."""
         return {
+            "id": str(self.id),
             "title": self.title,
             "completed": self.completed,
             "priority": self.priority.value,
@@ -65,10 +69,12 @@ class Task:
             if due_date_value is not None
             else None
         )
+        task_id_value = data.get("id")
         task = cls(
             str(data["title"]),
             priority=priority,
             due_date=due_date,
+            task_id=UUID(str(task_id_value)) if task_id_value else None,
         )
         if bool(data.get("completed", False)):
             task.complete()

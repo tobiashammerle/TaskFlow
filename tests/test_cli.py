@@ -1,4 +1,5 @@
 from unittest.mock import create_autospec
+from uuid import UUID
 
 import pytest
 
@@ -20,8 +21,8 @@ class FakeTaskService:
     def __init__(self, tasks=None) -> None:
         self.added_title: str | None = None
         self.tasks = tasks or []
-        self.completed_index: int | None = None
-        self.removed_index: int | None = None
+        self.completed_task_id: UUID | None = None
+        self.removed_task_id: UUID | None = None
 
     def add_task(self, title: str) -> None:
         self.added_title = title
@@ -29,13 +30,13 @@ class FakeTaskService:
     def get_tasks(self) -> list:
         return self.tasks
 
-    def complete_task(self, index: int) -> Task:
-        self.completed_index = index
-        return self.tasks[index]
+    def complete_task(self, task_id: UUID) -> Task:
+        self.completed_task_id = task_id
+        return next(task for task in self.tasks if task.id == task_id)
 
-    def remove_task(self, index: int) -> Task:
-        self.removed_index = index
-        return self.tasks[index]
+    def remove_task(self, task_id: UUID) -> Task:
+        self.removed_task_id = task_id
+        return next(task for task in self.tasks if task.id == task_id)
 
 
 class FakeFailingTaskService:
@@ -44,19 +45,25 @@ class FakeFailingTaskService:
 
 
 class FakeFailingCompleteTaskService:
-    def get_tasks(self) -> list[Task]:
-        return [Task("Python lernen"), Task("Git lernen")]
+    def __init__(self) -> None:
+        self.tasks = [Task("Python lernen"), Task("Git lernen")]
 
-    def complete_task(self, index: int) -> Task:
-        raise TaskNotFoundError(f"Keine Aufgabe mit Index {index} gefunden.")
+    def get_tasks(self) -> list[Task]:
+        return self.tasks
+
+    def complete_task(self, task_id: UUID) -> Task:
+        raise TaskNotFoundError(f"Keine Aufgabe mit ID {task_id} gefunden.")
 
 
 class FakeFailingRemoveTaskService:
-    def get_tasks(self) -> list[Task]:
-        return [Task("Python lernen"), Task("Git lernen")]
+    def __init__(self) -> None:
+        self.tasks = [Task("Python lernen"), Task("Git lernen")]
 
-    def remove_task(self, index: int) -> Task:
-        raise TaskNotFoundError(f"Keine Aufgabe mit Index {index} gefunden.")
+    def get_tasks(self) -> list[Task]:
+        return self.tasks
+
+    def remove_task(self, task_id: UUID) -> Task:
+        raise TaskNotFoundError(f"Keine Aufgabe mit ID {task_id} gefunden.")
 
 
 @pytest.fixture
@@ -111,14 +118,16 @@ def test_show_tasks_prints_existing_tasks(fake_service_with_tasks, capsys) -> No
     assert "Git lernen" in captured.out
 
 
-def test_complete_task_passes_correct_index_to_service(
+def test_complete_task_passes_correct_task_id_to_service(
     fake_service_with_tasks, monkeypatch, capsys
 ) -> None:
     # service = FakeTaskService(tasks=[Task("Python lernen"), Task("Git lernen")])
     mock_inputs(monkeypatch, ["2"])
     complete_task(fake_service_with_tasks)
     captured = capsys.readouterr()
-    assert fake_service_with_tasks.completed_index == 1
+    assert (
+        fake_service_with_tasks.completed_task_id == fake_service_with_tasks.tasks[1].id
+    )
     assert "Git lernen" in captured.out
 
 
@@ -131,20 +140,21 @@ def test_complete_task_prints_error_when_no_existing_tasks(capsys) -> None:
 
 def test_complete_task_prints_error_when_task_not_found(monkeypatch, capsys) -> None:
     service = FakeFailingCompleteTaskService()
-    mock_inputs(monkeypatch, ["5"])
+    selected_task = service.get_tasks()[0]
+    mock_inputs(monkeypatch, ["1"])
     complete_task(service)
     captured = capsys.readouterr()
-    assert "Keine Aufgabe mit Index" in captured.out
+    assert f"Keine Aufgabe mit ID {selected_task.id} gefunden." in captured.out
 
 
 def test_remove_task_with_fake_service_removes_selected_task(
     fake_service_with_tasks, monkeypatch, capsys
 ):
-    # service = FakeTaskService(tasks=[Task("Python lernen"), Task("Git lernen")])
+    selected_task = fake_service_with_tasks.tasks[1]
     mock_inputs(monkeypatch, ["2"])
     remove_task(fake_service_with_tasks)
     captured = capsys.readouterr()
-    assert fake_service_with_tasks.removed_index == 1
+    assert fake_service_with_tasks.removed_task_id == selected_task.id
     assert 'Die Aufgabe "Git lernen" wurde gelöscht.' in captured.out
 
 
@@ -157,10 +167,11 @@ def test_remove_task_prints_error_when_no_existing_tasks(capsys) -> None:
 
 def test_remove_task_prints_error_when_task_not_found(monkeypatch, capsys):
     service = FakeFailingRemoveTaskService()
-    mock_inputs(monkeypatch, ["3"])
+    selected_task = service.get_tasks()[0]
+    mock_inputs(monkeypatch, ["1"])
     remove_task(service)
     captured = capsys.readouterr()
-    assert "Keine Aufgabe mit Index" in captured.out
+    assert f"Keine Aufgabe mit ID {selected_task.id} gefunden." in captured.out
 
 
 def test_run_cli_adds_task_and_exits(service, monkeypatch, capsys) -> None:
@@ -179,26 +190,30 @@ def test_run_cli_prints_error_for_invalid_choice(service, monkeypatch, capsys) -
     assert "TaskFlow wird beendet." in captured.out
 
 
-def test_complete_task_calls_service_with_selected_index(
+def test_complete_task_calls_service_with_selected_task_id(
     mock_task_service, monkeypatch
 ) -> None:
-    mock_task_service.complete_task.return_value = Task("Git üben")
+    task_1 = Task("Python lernen")
+    task_2 = Task("Git üben")
+    mock_task_service.get_tasks.return_value = [task_1, task_2]
+    mock_task_service.complete_task.return_value = task_2
     mock_inputs(monkeypatch, ["2"])
     complete_task(mock_task_service)
-    mock_task_service.complete_task.assert_called_once_with(1)
+    mock_task_service.complete_task.assert_called_once_with(task_2.id)
 
 
 def test_complete_task_prints_error_when_service_raises(
     mock_task_service, monkeypatch, capsys
 ) -> None:
+    selected_task = mock_task_service.get_tasks.return_value[0]
     mock_task_service.complete_task.side_effect = TaskNotFoundError(
-        "Keine Aufgabe mit Index 4 gefunden."
+        f"Keine Aufgabe mit ID {selected_task.id} gefunden."
     )
-    mock_inputs(monkeypatch, ["5"])
+    mock_inputs(monkeypatch, ["1"])
     complete_task(mock_task_service)
     captured = capsys.readouterr()
-    assert "Keine Aufgabe mit Index 4 gefunden." in captured.out
-    mock_task_service.complete_task.assert_called_once_with(4)
+    assert f"Keine Aufgabe mit ID {selected_task.id} gefunden." in captured.out
+    mock_task_service.complete_task.assert_called_once_with(selected_task.id)
 
 
 def test_complete_task_does_not_call_service_for_invalid_input(
@@ -211,13 +226,34 @@ def test_complete_task_does_not_call_service_for_invalid_input(
     mock_task_service.complete_task.assert_not_called()
 
 
-def test_remove_task_passes_correct_index_to_service(
+def test_complete_task_does_not_call_service_for_zero(
+    mock_task_service, monkeypatch, capsys
+) -> None:
+    mock_inputs(monkeypatch, ["0"])
+    complete_task(mock_task_service)
+    captured = capsys.readouterr()
+    assert "Bitte gib eine gültige Zahl ein." in captured.out
+    mock_task_service.complete_task.assert_not_called()
+
+
+def test_complete_task_does_not_call_service_for_number_out_of_range(
+    mock_task_service, monkeypatch, capsys
+) -> None:
+    mock_inputs(monkeypatch, ["99"])
+    complete_task(mock_task_service)
+    captured = capsys.readouterr()
+    assert "Bitte gib eine gültige Zahl ein." in captured.out
+    mock_task_service.complete_task.assert_not_called()
+
+
+def test_remove_task_passes_correct_task_id_to_service(
     mock_task_service, monkeypatch
 ) -> None:
-    mock_task_service.remove_task.return_value = Task("Git üben")
+    selected_task = mock_task_service.get_tasks.return_value[1]
+    mock_task_service.remove_task.return_value = selected_task
     mock_inputs(monkeypatch, ["2"])
     remove_task(mock_task_service)
-    mock_task_service.remove_task.assert_called_once_with(1)
+    mock_task_service.remove_task.assert_called_once_with(selected_task.id)
 
 
 def test_remove_task_does_not_call_service_for_invalid_input(
@@ -233,11 +269,12 @@ def test_remove_task_does_not_call_service_for_invalid_input(
 def test_remove_task_prints_error_when_service_raises(
     mock_task_service, monkeypatch, capsys
 ) -> None:
+    selected_task = mock_task_service.get_tasks.return_value[0]
     mock_task_service.remove_task.side_effect = TaskNotFoundError(
-        "Keine Aufgabe mit Index 4 gefunden."
+        f"Keine Aufgabe mit ID {selected_task.id} gefunden."
     )
-    mock_inputs(monkeypatch, ["5"])
+    mock_inputs(monkeypatch, ["1"])
     remove_task(mock_task_service)
     captured = capsys.readouterr()
-    assert "Keine Aufgabe mit Index 4 gefunden." in captured.out
-    mock_task_service.remove_task.assert_called_once_with(4)
+    assert f"Keine Aufgabe mit ID {selected_task.id} gefunden." in captured.out
+    mock_task_service.remove_task.assert_called_once_with(selected_task.id)

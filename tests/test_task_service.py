@@ -1,4 +1,5 @@
 from datetime import date
+from uuid import uuid4
 
 import pytest
 
@@ -86,56 +87,52 @@ def test_add_task_with_priority(service: TaskService) -> None:
 
 
 def test_remove_task_removes_existing_task(service_with_tasks: TaskService) -> None:
-    removed_task = service_with_tasks.remove_task(0)
-    tasks = service_with_tasks.get_tasks()
+    task_to_remove = service_with_tasks.get_tasks()[0]
+    removed_task = service_with_tasks.remove_task(task_to_remove.id)
+    tasks_after_removal = service_with_tasks.get_tasks()
     assert removed_task is not None
     assert removed_task.title == "Python lernen"
-    assert len(tasks) == 1
-    assert tasks[0].title == "Git lernen"
+    assert len(tasks_after_removal) == 1
+    assert tasks_after_removal[0].title == "Git lernen"
+    assert removed_task.id == task_to_remove.id
 
 
-def test_remove_task_raises_task_not_found_error_for_negative_index(
+def test_remove_task_raises_task_not_found_error_for_unknown_id(
     service: TaskService,
 ) -> None:
     service.add_task("Python lernen")
+    unknown_id = uuid4()
     with pytest.raises(TaskNotFoundError):
-        service.remove_task(-1)
-    assert len(service.get_tasks()) == 1
-
-
-def test_remove_task_raises_task_not_found_error_for_index_that_is_too_large(
-    service: TaskService,
-) -> None:
-    service.add_task("Python lernen")
-    with pytest.raises(TaskNotFoundError):
-        service.remove_task(1)
+        service.remove_task(unknown_id)
     assert len(service.get_tasks()) == 1
 
 
 def test_complete_task_marks_task_as_completed(service: TaskService) -> None:
     service.add_task("Python lernen")
-    completed_task = service.complete_task(0)
-    tasks = service.get_tasks()
+    task = service.get_tasks()[0]
+    completed_task = service.complete_task(task.id)
     assert completed_task is not None
     assert completed_task.completed is True
-    assert tasks[0].completed is True
+    assert completed_task.id == task.id
 
 
-def test_complete_task_raises_task_not_found_error_for_negative_index(
+def test_complete_task_by_id(service: TaskService) -> None:
+    service.add_task("Einkaufen")
+    service.add_task("Python lernen")
+    task_1, task_2 = service.get_tasks()
+    completed_task = service.complete_task(task_2.id)
+    assert completed_task.id == task_2.id
+    assert completed_task.completed is True
+    assert task_1.completed is False
+
+
+def test_complete_task_raises_task_not_found_error_for_unknown_id(
     service: TaskService,
 ) -> None:
     service.add_task("Python lernen")
+    unknown_id = uuid4()
     with pytest.raises(TaskNotFoundError):
-        service.complete_task(-1)
-    assert service.get_tasks()[0].completed is False
-
-
-def test_complete_task_raises_task_not_found_error_for_index_that_is_too_large(
-    service: TaskService,
-) -> None:
-    service.add_task("Python lernen")
-    with pytest.raises(TaskNotFoundError):
-        service.complete_task(1)
+        service.complete_task(unknown_id)
     assert service.get_tasks()[0].completed is False
 
 
@@ -233,7 +230,8 @@ def test_filter_completed_tasks(service: TaskService) -> None:
 def test_filter_open_tasks(service: TaskService) -> None:
     service.add_task("Python lernen")
     service.add_task("Git üben")
-    service.complete_task(1)
+    task_2 = service.get_tasks()[1]
+    service.complete_task(task_2.id)
     open_tasks = service.filter_tasks(FilterType.OPEN)
     assert len(open_tasks) == 1
     assert open_tasks[0].title == "Python lernen"
@@ -243,7 +241,8 @@ def test_filter_open_tasks(service: TaskService) -> None:
 def test_filter_all_tasks(service: TaskService) -> None:
     service.add_task("Python lernen")
     service.add_task("Git üben")
-    service.complete_task(1)
+    task_2 = service.get_tasks()[1]
+    service.complete_task(task_2.id)
     all_tasks = service.filter_tasks(FilterType.ALL)
     assert len(all_tasks) == 2
 
@@ -361,7 +360,8 @@ def test_get_statistics(service: TaskService) -> None:
     service.add_task("Python lernen", priority=Priority.HIGH)
     service.add_task("Git üben", priority=Priority.MEDIUM)
     service.add_task("Docker lernen", priority=Priority.HIGH)
-    service.complete_task(1)
+    task_2 = service.get_tasks()[1]
+    service.complete_task(task_2.id)
     statistics = service.get_statistics()
     assert statistics == TaskStatistics(
         total_tasks=3,

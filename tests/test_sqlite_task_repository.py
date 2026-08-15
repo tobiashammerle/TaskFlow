@@ -44,3 +44,12 @@ def test_save_overwrites_existing_tasks(tmp_path: Path) -> None:
     loaded_tasks = repository.get_all()
     assert len(loaded_tasks) == 1
     assert loaded_tasks[0].title == "Neue Aufgabe"
+
+
+def test_save_and_get_all_preserves_task_id(tmp_path: Path) -> None:
+    repository = SqliteTaskRepository(tmp_path / "tasks.db")
+    repository.initialize_database()
+    original = Task("Python lernen")
+    repository.save([original])
+    loaded_tasks = repository.get_all()
+    assert loaded_tasks[0].id == original.id
