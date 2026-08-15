@@ -87,29 +87,23 @@ def test_add_task_with_priority(service: TaskService) -> None:
 
 
 def test_remove_task_removes_existing_task(service_with_tasks: TaskService) -> None:
-    removed_task = service_with_tasks.remove_task(0)
-    tasks = service_with_tasks.get_tasks()
+    task_to_remove = service_with_tasks.get_tasks()[0]
+    removed_task = service_with_tasks.remove_task(task_to_remove.id)
+    tasks_after_removal = service_with_tasks.get_tasks()
     assert removed_task is not None
     assert removed_task.title == "Python lernen"
-    assert len(tasks) == 1
-    assert tasks[0].title == "Git lernen"
+    assert len(tasks_after_removal) == 1
+    assert tasks_after_removal[0].title == "Git lernen"
+    assert removed_task.id == task_to_remove.id
 
 
-def test_remove_task_raises_task_not_found_error_for_negative_index(
+def test_remove_task_raises_task_not_found_error_for_unknown_id(
     service: TaskService,
 ) -> None:
     service.add_task("Python lernen")
+    unknown_id = uuid4()
     with pytest.raises(TaskNotFoundError):
-        service.remove_task(-1)
-    assert len(service.get_tasks()) == 1
-
-
-def test_remove_task_raises_task_not_found_error_for_index_that_is_too_large(
-    service: TaskService,
-) -> None:
-    service.add_task("Python lernen")
-    with pytest.raises(TaskNotFoundError):
-        service.remove_task(1)
+        service.remove_task(unknown_id)
     assert len(service.get_tasks()) == 1
 
 

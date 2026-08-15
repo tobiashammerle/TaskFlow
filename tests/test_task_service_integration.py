@@ -64,7 +64,8 @@ def test_removed_task_does_not_appear_after_new_service_instance(
     repository_1.initialize_database()
     task_service_1 = TaskService(repository_1)
     task_service_1.add_task("Python lernen")
-    task_service_1.remove_task(0)
+    task_to_remove = task_service_1.get_tasks()[0]
+    task_service_1.remove_task(task_to_remove.id)
     repository_2 = SqliteTaskRepository(database_path)
     repository_2.initialize_database()
     task_service_2 = TaskService(repository_2)

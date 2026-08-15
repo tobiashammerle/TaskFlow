@@ -94,8 +94,14 @@ def remove_task(task_service: TaskService) -> None:
     if not task_number.isdigit():
         print("Gib eine gültige Zahl ein. ")
         return
+    task_number_int = int(task_number)
+    if task_number_int < 1 or task_number_int > len(tasks):
+        print("Bitte gib eine gültige Zahl ein. ")
+        return
     try:
-        removed_task = task_service.remove_task(int(task_number) - 1)
+        task_index = task_number_int - 1
+        task = tasks[task_index]
+        removed_task = task_service.remove_task(task.id)
     except TaskNotFoundError as error:
         print(error)
         return

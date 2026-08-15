@@ -33,11 +33,12 @@ class TaskService:
         self.repository.save(self.tasks)
         logger.info("Aufgabe erstellt: %s", task.title)
 
-    def remove_task(self, index: int) -> Task | None:
-        """Entfernt eine Aufgabe anhand ihres Index."""
-        if index < 0 or index >= len(self.tasks):
-            raise TaskNotFoundError(f"Keine Aufgabe mit Index {index} gefunden.")
-        task = self.tasks.pop(index)
+    def remove_task(self, task_id: UUID) -> Task:
+        """Entfernt eine Aufgabe anhand ihrer ID."""
+        task = next((task for task in self.tasks if task.id == task_id), None)
+        if task is None:
+            raise TaskNotFoundError(f"Keine Aufgabe mit ID {task_id} gefunden.")
+        self.tasks.remove(task)
         self.repository.save(self.tasks)
         logger.info("Aufgabe gelöscht: %s", task.title)
         return task
