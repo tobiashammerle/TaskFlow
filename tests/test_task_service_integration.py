@@ -45,7 +45,8 @@ def test_completed_task_state_persists_in_sqlite(tmp_path: Path) -> None:
     repository_1.initialize_database()
     task_service_1 = TaskService(repository_1)
     task_service_1.add_task("Python lernen")
-    task_service_1.complete_task(0)
+    task_1 = task_service_1.get_tasks()[0]
+    task_service_1.complete_task(task_1.id)
 
     repository_2 = SqliteTaskRepository(database_path)
     repository_2.initialize_database()

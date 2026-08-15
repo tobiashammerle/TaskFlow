@@ -64,11 +64,18 @@ def complete_task(task_service: TaskService) -> None:
         return
     show_tasks(task_service)
     task_number = input("Nummer der zu erledigenden Aufgabe: ").strip()
+
     if not task_number.isdigit():
         print("Bitte gib eine gültige Zahl ein. ")
         return
+    task_number_int = int(task_number)
+    if task_number_int < 1 or task_number_int > len(tasks):
+        print("Bitte gib eine gültige Zahl ein. ")
+        return
     try:
-        completed_task = task_service.complete_task(int(task_number) - 1)
+        task_index = int(task_number) - 1
+        task = tasks[task_index]
+        completed_task = task_service.complete_task(task.id)
     except TaskNotFoundError as error:
         print(error)
         return

@@ -1,5 +1,6 @@
 import logging
 from datetime import date
+from uuid import UUID
 
 from taskflow.exceptions import TaskNotFoundError
 from taskflow.filter_type import FilterType
@@ -45,10 +46,10 @@ class TaskService:
         """Gibt die aktuelle Aufgabenliste zurück."""
         return self.tasks.copy()
 
-    def complete_task(self, index: int) -> Task | None:
-        if index < 0 or index >= len(self.tasks):
-            raise TaskNotFoundError(f"Keine Aufgabe mit Index {index} gefunden.")
-        task = self.tasks[index]
+    def complete_task(self, task_id: UUID) -> Task:
+        task = next((task for task in self.tasks if task.id == task_id), None)
+        if task is None:
+            raise TaskNotFoundError(f"Keine Aufgabe mit ID {task_id} gefunden.")
         task.complete()
         self.repository.save(self.tasks)
         logger.info("Aufgabe abgeschlossen: %s", task.title)
