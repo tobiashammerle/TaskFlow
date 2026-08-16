@@ -72,3 +72,9 @@ class JsonTaskRepository:
                 self.save(tasks)
                 return
         raise ValueError(f"Keine Aufgabe mit ID {task.id} gefunden.")
+
+    def delete(self, task_id: UUID) -> None:
+        """Löscht eine Aufgabe anhand ihrer ID aus der JSON-Datei."""
+        tasks = self.get_all()
+        tasks = [task for task in tasks if task.id != task_id]
+        self.save(tasks)

@@ -106,3 +106,29 @@ def test_update_persists_changes_to_task(tmp_path: Path) -> None:
     assert loaded_task.id == task.id
     assert loaded_task.title == "Python fortgeschritten"
     assert loaded_task.priority == Priority.HIGH
+
+
+def test_delete_removes_task_from_database(tmp_path: Path) -> None:
+    repository = SqliteTaskRepository(tmp_path / "tasks.db")
+    repository.initialize_database()
+    task = Task("Python lernen")
+    repository.add(task)
+
+    # Delete the task
+    repository.delete(task.id)
+
+    loaded_task = repository.get_by_id(task.id)
+    assert loaded_task is None
+
+
+def test_delete_unknown_id_does_not_raise_error(tmp_path: Path) -> None:
+    repository = SqliteTaskRepository(tmp_path / "tasks.db")
+    repository.initialize_database()
+    task = Task("Python lernen")
+    repository.add(task)
+    unknown_id = uuid4()
+    repository.delete(unknown_id)  # Should not raise an error
+    loaded_task = repository.get_by_id(task.id)
+    assert loaded_task is not None
+    assert loaded_task.id == task.id
+    assert loaded_task.title == "Python lernen"

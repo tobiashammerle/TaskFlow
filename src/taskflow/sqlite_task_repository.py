@@ -172,3 +172,15 @@ class SqliteTaskRepository:
                     str(task.id),
                 ),
             )
+
+    def delete(self, task_id: UUID) -> None:
+        """Löscht eine Aufgabe anhand ihrer ID aus der SQLite-Datenbank."""
+        with sqlite3.connect(self.database_path) as connection:
+            cursor = connection.cursor()
+            cursor.execute(
+                """
+                DELETE FROM tasks
+                WHERE task_id = ?
+                """,
+                (str(task_id),),
+            )
