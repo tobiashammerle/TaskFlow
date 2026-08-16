@@ -130,3 +130,17 @@ def test_add_persists_single_task(tmp_path: Path) -> None:
     loaded_task = repository.get_by_id(task.id)
     assert loaded_task is not None
     assert loaded_task.title == "Python lernen"
+
+
+def test_update_persists_changes_to_task(tmp_path: Path) -> None:
+    repository = JsonTaskRepository(tmp_path / "tasks.json")
+    task = Task("Python lernen")
+    repository.add(task)
+    task.title = "Python fortgeschritten"
+    task.complete()
+    repository.update(task)
+    loaded_task = repository.get_by_id(task.id)
+    assert loaded_task is not None
+    assert loaded_task.id == task.id
+    assert loaded_task.title == "Python fortgeschritten"
+    assert loaded_task.completed is True

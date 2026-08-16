@@ -62,3 +62,13 @@ class JsonTaskRepository:
         tasks = self.get_all()
         tasks.append(task)
         self.save(tasks)
+
+    def update(self, task: Task) -> None:
+        """Aktualisiert eine Aufgabe in der JSON-Datei."""
+        tasks = self.get_all()
+        for i, existing_task in enumerate(tasks):
+            if existing_task.id == task.id:
+                tasks[i] = task
+                self.save(tasks)
+                return
+        raise ValueError(f"Keine Aufgabe mit ID {task.id} gefunden.")

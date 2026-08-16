@@ -88,3 +88,21 @@ def test_add_persists_single_task(tmp_path: Path) -> None:
     assert loaded_task is not None
     assert loaded_task.id == task.id
     assert loaded_task.title == "Python lernen"
+
+
+def test_update_persists_changes_to_task(tmp_path: Path) -> None:
+    repository = SqliteTaskRepository(tmp_path / "tasks.db")
+    repository.initialize_database()
+    task = Task("Python lernen")
+    repository.add(task)
+
+    # Update the task's title and priority
+    task.title = "Python fortgeschritten"
+    task.priority = Priority.HIGH
+    repository.update(task)
+
+    loaded_task = repository.get_by_id(task.id)
+    assert loaded_task is not None
+    assert loaded_task.id == task.id
+    assert loaded_task.title == "Python fortgeschritten"
+    assert loaded_task.priority == Priority.HIGH

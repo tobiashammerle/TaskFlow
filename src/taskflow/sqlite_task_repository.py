@@ -150,3 +150,25 @@ class SqliteTaskRepository:
                     (task.due_date.isoformat() if task.due_date is not None else None),
                 ),
             )
+
+    def update(self, task: Task) -> None:
+        """Aktualisiert eine Aufgabe in der SQLite-Datenbank."""
+        with sqlite3.connect(self.database_path) as connection:
+            cursor = connection.cursor()
+            cursor.execute(
+                """
+                UPDATE tasks
+                SET title = ?,
+                    completed = ?,
+                    priority = ?,
+                    due_date = ?
+                WHERE task_id = ?
+                """,
+                (
+                    task.title,
+                    int(task.completed),
+                    task.priority.value,
+                    (task.due_date.isoformat() if task.due_date is not None else None),
+                    str(task.id),
+                ),
+            )
