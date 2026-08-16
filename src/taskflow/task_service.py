@@ -29,8 +29,8 @@ class TaskService:
         """Fügt eine Aufgabe hinzu, wenn der Titel nicht leer ist."""
 
         task = Task(title, priority=priority, due_date=due_date)
+        self.repository.add(task)
         self.tasks.append(task)
-        self.repository.save(self.tasks)
         logger.info("Aufgabe erstellt: %s", task.title)
 
     def remove_task(self, task_id: UUID) -> Task:
@@ -38,8 +38,8 @@ class TaskService:
         task = next((task for task in self.tasks if task.id == task_id), None)
         if task is None:
             raise TaskNotFoundError(f"Keine Aufgabe mit ID {task_id} gefunden.")
+        self.repository.delete(task_id)
         self.tasks.remove(task)
-        self.repository.save(self.tasks)
         logger.info("Aufgabe gelöscht: %s", task.title)
         return task
 
@@ -52,7 +52,7 @@ class TaskService:
         if task is None:
             raise TaskNotFoundError(f"Keine Aufgabe mit ID {task_id} gefunden.")
         task.complete()
-        self.repository.save(self.tasks)
+        self.repository.update(task)
         logger.info("Aufgabe abgeschlossen: %s", task.title)
         return task
 
