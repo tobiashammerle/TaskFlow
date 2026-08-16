@@ -94,3 +94,35 @@ class SqliteTaskRepository:
                 task.complete()
             tasks.append(task)
         return tasks
+
+    def get_by_id(self, task_id: UUID) -> Task | None:
+        """Lädt eine Aufgabe anhand ihrer ID aus der SQLite-Datenbank."""
+        with sqlite3.connect(self.database_path) as connection:
+            cursor = connection.cursor()
+            cursor.execute(
+                """
+                SELECT task_id, title, completed, priority, due_date
+                FROM tasks
+                WHERE task_id = ?
+                """,
+                (str(task_id),),
+            )
+            row = cursor.fetchone()
+
+        if row is None:
+            return None
+
+        task_id, title, completed, priority, due_date_value = row
+        task = Task(
+            title=title,
+            priority=Priority(priority),
+            due_date=(
+                date.fromisoformat(due_date_value)
+                if due_date_value is not None
+                else None
+            ),
+            task_id=UUID(task_id),
+        )
+        if bool(completed):
+            task.complete()
+        return task

@@ -1,6 +1,7 @@
 import json
 import logging
 from pathlib import Path
+from uuid import UUID
 
 from taskflow.task import Task
 
@@ -47,3 +48,11 @@ class JsonTaskRepository:
             tasks = [Task.from_dict(item) for item in data]
             logger.info("%d Aufgaben geladen", len(tasks))
             return tasks
+
+    def get_by_id(self, task_id: UUID) -> Task | None:
+        """Lädt eine Aufgabe anhand ihrer ID aus der JSON-Datei."""
+        tasks = self.get_all()
+        for task in tasks:
+            if task.id == task_id:
+                return task
+        return None

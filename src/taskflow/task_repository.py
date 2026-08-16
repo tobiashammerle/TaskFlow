@@ -1,4 +1,5 @@
 from typing import Protocol
+from uuid import UUID
 
 from taskflow.task import Task
 
@@ -8,3 +9,4 @@ class TaskRepository(Protocol):
 
     def save(self, tasks: list[Task]) -> None: ...
     def get_all(self) -> list[Task]: ...
+    def get_by_id(self, task_id: UUID) -> Task | None: ...

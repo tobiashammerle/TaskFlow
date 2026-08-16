@@ -1,5 +1,6 @@
 from datetime import date
 from pathlib import Path
+from uuid import uuid4
 
 from taskflow.priority import Priority
 from taskflow.sqlite_task_repository import SqliteTaskRepository
@@ -53,3 +54,26 @@ def test_save_and_get_all_preserves_task_id(tmp_path: Path) -> None:
     repository.save([original])
     loaded_tasks = repository.get_all()
     assert loaded_tasks[0].id == original.id
+
+
+def test_get_by_id_returns_task_with_matching_id(tmp_path: Path) -> None:
+    repository = SqliteTaskRepository(tmp_path / "tasks.db")
+    repository.initialize_database()
+    task_1 = Task("Python lernen")
+    task_2 = Task("Git üben")
+    repository.save([task_1, task_2])
+
+    loaded_task = repository.get_by_id(task_2.id)
+    assert loaded_task is not None
+    assert loaded_task.id == task_2.id
+    assert loaded_task.title == "Git üben"
+
+
+def test_get_by_id_returns_none_for_unknown_id(tmp_path: Path) -> None:
+    repository = SqliteTaskRepository(tmp_path / "tasks.db")
+    repository.initialize_database()
+    task = Task("Python lernen")
+    repository.save([task])
+    unknown_id = uuid4()
+    loaded_task = repository.get_by_id(unknown_id)
+    assert loaded_task is None

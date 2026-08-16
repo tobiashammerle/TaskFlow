@@ -1,6 +1,7 @@
 import json
 from datetime import date
 from pathlib import Path
+from uuid import uuid4
 
 import pytest
 
@@ -97,3 +98,26 @@ def test_save_and_get_all_preserves_task_id(tmp_path: Path) -> None:
     repository.save([original])
     loaded_tasks = repository.get_all()
     assert loaded_tasks[0].id == original.id
+
+
+def test_get_task_by_id_returns_matching_task(tmp_path: Path) -> None:
+    file_path = tmp_path / "tasks.json"
+    repository = JsonTaskRepository(file_path)
+    task_1 = Task("Python lernen")
+    task_2 = Task("Git lernen")
+    repository.save([task_1, task_2])
+    result = repository.get_by_id(task_2.id)
+    assert result is not None
+    assert result.id == task_2.id
+    assert result.title == "Git lernen"
+
+
+def test_get_task_by_id_returns_none_for_unknown_id(tmp_path: Path) -> None:
+    file_path = tmp_path / "tasks.json"
+    repository = JsonTaskRepository(file_path)
+    task_1 = Task("Python lernen")
+    task_2 = Task("Git lernen")
+    repository.save([task_1, task_2])
+    unknown_id = uuid4()
+    result = repository.get_by_id(unknown_id)
+    assert result is None
