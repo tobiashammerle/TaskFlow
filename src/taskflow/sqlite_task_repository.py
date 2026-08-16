@@ -94,3 +94,93 @@ class SqliteTaskRepository:
                 task.complete()
             tasks.append(task)
         return tasks
+
+    def get_by_id(self, task_id: UUID) -> Task | None:
+        """Lädt eine Aufgabe anhand ihrer ID aus der SQLite-Datenbank."""
+        with sqlite3.connect(self.database_path) as connection:
+            cursor = connection.cursor()
+            cursor.execute(
+                """
+                SELECT task_id, title, completed, priority, due_date
+                FROM tasks
+                WHERE task_id = ?
+                """,
+                (str(task_id),),
+            )
+            row = cursor.fetchone()
+
+        if row is None:
+            return None
+
+        task_id, title, completed, priority, due_date_value = row
+        task = Task(
+            title=title,
+            priority=Priority(priority),
+            due_date=(
+                date.fromisoformat(due_date_value)
+                if due_date_value is not None
+                else None
+            ),
+            task_id=UUID(task_id),
+        )
+        if bool(completed):
+            task.complete()
+        return task
+
+    def add(self, task: Task) -> None:
+        """Fügt eine Aufgabe in die SQLite-Datenbank ein."""
+        with sqlite3.connect(self.database_path) as connection:
+            cursor = connection.cursor()
+            cursor.execute(
+                """
+                INSERT INTO tasks (
+                    task_id,
+                    title,
+                    completed,
+                    priority,
+                    due_date
+                )
+                VALUES (?, ?, ?, ?, ?)
+                """,
+                (
+                    str(task.id),
+                    task.title,
+                    int(task.completed),
+                    task.priority.value,
+                    (task.due_date.isoformat() if task.due_date is not None else None),
+                ),
+            )
+
+    def update(self, task: Task) -> None:
+        """Aktualisiert eine Aufgabe in der SQLite-Datenbank."""
+        with sqlite3.connect(self.database_path) as connection:
+            cursor = connection.cursor()
+            cursor.execute(
+                """
+                UPDATE tasks
+                SET title = ?,
+                    completed = ?,
+                    priority = ?,
+                    due_date = ?
+                WHERE task_id = ?
+                """,
+                (
+                    task.title,
+                    int(task.completed),
+                    task.priority.value,
+                    (task.due_date.isoformat() if task.due_date is not None else None),
+                    str(task.id),
+                ),
+            )
+
+    def delete(self, task_id: UUID) -> None:
+        """Löscht eine Aufgabe anhand ihrer ID aus der SQLite-Datenbank."""
+        with sqlite3.connect(self.database_path) as connection:
+            cursor = connection.cursor()
+            cursor.execute(
+                """
+                DELETE FROM tasks
+                WHERE task_id = ?
+                """,
+                (str(task_id),),
+            )
