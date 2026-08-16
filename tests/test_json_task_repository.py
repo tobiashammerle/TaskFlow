@@ -121,3 +121,12 @@ def test_get_task_by_id_returns_none_for_unknown_id(tmp_path: Path) -> None:
     unknown_id = uuid4()
     result = repository.get_by_id(unknown_id)
     assert result is None
+
+
+def test_add_persists_single_task(tmp_path: Path) -> None:
+    repository = JsonTaskRepository(tmp_path / "tasks.json")
+    task = Task("Python lernen")
+    repository.add(task)
+    loaded_task = repository.get_by_id(task.id)
+    assert loaded_task is not None
+    assert loaded_task.title == "Python lernen"

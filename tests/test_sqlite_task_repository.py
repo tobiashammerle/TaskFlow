@@ -77,3 +77,14 @@ def test_get_by_id_returns_none_for_unknown_id(tmp_path: Path) -> None:
     unknown_id = uuid4()
     loaded_task = repository.get_by_id(unknown_id)
     assert loaded_task is None
+
+
+def test_add_persists_single_task(tmp_path: Path) -> None:
+    repository = SqliteTaskRepository(tmp_path / "tasks.db")
+    repository.initialize_database()
+    task = Task("Python lernen")
+    repository.add(task)
+    loaded_task = repository.get_by_id(task.id)
+    assert loaded_task is not None
+    assert loaded_task.id == task.id
+    assert loaded_task.title == "Python lernen"

@@ -56,3 +56,9 @@ class JsonTaskRepository:
             if task.id == task_id:
                 return task
         return None
+
+    def add(self, task: Task) -> None:
+        """Fügt eine Aufgabe hinzu und speichert sie in der JSON-Datei."""
+        tasks = self.get_all()
+        tasks.append(task)
+        self.save(tasks)

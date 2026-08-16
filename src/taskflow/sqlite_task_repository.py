@@ -126,3 +126,27 @@ class SqliteTaskRepository:
         if bool(completed):
             task.complete()
         return task
+
+    def add(self, task: Task) -> None:
+        """Fügt eine Aufgabe in die SQLite-Datenbank ein."""
+        with sqlite3.connect(self.database_path) as connection:
+            cursor = connection.cursor()
+            cursor.execute(
+                """
+                INSERT INTO tasks (
+                    task_id,
+                    title,
+                    completed,
+                    priority,
+                    due_date
+                )
+                VALUES (?, ?, ?, ?, ?)
+                """,
+                (
+                    str(task.id),
+                    task.title,
+                    int(task.completed),
+                    task.priority.value,
+                    (task.due_date.isoformat() if task.due_date is not None else None),
+                ),
+            )
