@@ -8,6 +8,7 @@ from taskflow.filter_type import FilterType
 from taskflow.priority import Priority
 from taskflow.sort_field import SortField
 from taskflow.task import Task
+from taskflow.task_repository import TaskRepository
 from taskflow.task_service import TaskService
 from taskflow.task_statistics import TaskStatistics
 from tests.fakes import FakeTaskRepository
@@ -23,7 +24,7 @@ from tests.fakes import FakeTaskRepository
 
 @pytest.fixture
 def service() -> TaskService:
-    repository = FakeTaskRepository()
+    repository: TaskRepository = FakeTaskRepository()
     return TaskService(repository)
 
 
