@@ -24,3 +24,9 @@ class FakeTaskRepository:
             if existing_task.id == task.id:
                 self.tasks[i] = task
                 break
+
+    def get_by_id(self, task_id: UUID) -> Task | None:
+        for task in self.tasks:
+            if task.id == task_id:
+                return task
+        return None
