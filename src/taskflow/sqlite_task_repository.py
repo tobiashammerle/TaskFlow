@@ -121,7 +121,7 @@ class SqliteTaskRepository:
                 if due_date_value is not None
                 else None
             ),
-            task_id=UUID(task_id),
+            task_id=UUID(str(task_id)),
         )
         if bool(completed):
             task.complete()
