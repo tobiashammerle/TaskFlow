@@ -1,5 +1,6 @@
 import logging
 
+from taskflow.application.create_task import CreateTask
 from taskflow.cli import run_cli
 from taskflow.logging_config import configure_logging
 from taskflow.repository_factory import create_repository
@@ -15,8 +16,9 @@ def main() -> None:
 
     repository = create_repository()
     task_service = TaskService(repository)
+    create_task = CreateTask(repository)
 
-    run_cli(task_service)
+    run_cli(task_service, create_task)
     logger.info("TaskFlow beendet")
 
 

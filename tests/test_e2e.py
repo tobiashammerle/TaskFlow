@@ -2,6 +2,7 @@ from pathlib import Path
 
 import pytest
 
+from taskflow.application.create_task import CreateTask
 from taskflow.cli import run_cli
 from taskflow.sqlite_task_repository import SqliteTaskRepository
 from taskflow.task_service import TaskService
@@ -28,7 +29,8 @@ def test_user_can_add_task_through_cli_and_persist_it(
         "builtins.input",
         lambda _: next(inputs),
     )
-    run_cli(task_service)
+    create_task = CreateTask(sqlite_repository)
+    run_cli(task_service, create_task)
     tasks = sqlite_repository.get_all()
     assert len(tasks) == 1
     assert tasks[0].title == "Python lernen"
@@ -42,7 +44,8 @@ def test_user_can_add_and_view_task_through_cli(
         "builtins.input",
         lambda _: next(inputs),
     )
-    run_cli(task_service)
+    create_task = CreateTask(sqlite_repository)
+    run_cli(task_service, create_task)
     captured = capsys.readouterr()
     assert "Aufgabe wurde hinzugefügt." in captured.out
     assert "Python lernen" in captured.out
@@ -56,7 +59,8 @@ def test_user_can_complete_task_through_cli(
         "builtins.input",
         lambda _: next(inputs),
     )
-    run_cli(task_service)
+    create_task = CreateTask(sqlite_repository)
+    run_cli(task_service, create_task)
     captured = capsys.readouterr()
     assert "Aufgabe wurde hinzugefügt." in captured.out
     assert "Python lernen" in captured.out
@@ -73,7 +77,8 @@ def test_user_can_remove_task_through_cli(
         "builtins.input",
         lambda _: next(inputs),
     )
-    run_cli(task_service)
+    create_task = CreateTask(sqlite_repository)
+    run_cli(task_service, create_task)
     captured = capsys.readouterr()
     assert "Aufgabe wurde hinzugefügt." in captured.out
     assert "Python lernen" in captured.out

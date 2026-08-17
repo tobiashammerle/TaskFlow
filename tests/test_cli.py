@@ -17,6 +17,16 @@ def mock_inputs(monkeypatch, values: list[str]) -> None:
     )
 
 
+class FakeCreateTask:
+    def __init__(self) -> None:
+        self.added_title: str | None = None
+
+    def execute(self, title: str) -> None:
+        if not title:
+            raise EmptyTitleError
+        self.added_title = title
+
+
 class FakeTaskService:
     def __init__(self, tasks=None) -> None:
         self.added_title: str | None = None
@@ -84,21 +94,22 @@ def mock_task_service():
 
 
 def test_add_task_passes_title_to_service(service, monkeypatch, capsys) -> None:
+    create_task = FakeCreateTask()
     mock_inputs(monkeypatch, ["Python lernen"])
-    add_task(service)
+    add_task(create_task)
     captured = capsys.readouterr()
-    assert service.added_title == "Python lernen"
+    assert create_task.added_title == "Python lernen"
     assert "Aufgabe wurde hinzugefügt." in captured.out
 
 
 def test_add_task_print_error_for_empty_title(monkeypatch, capsys) -> None:
-    service = FakeFailingTaskService()
+    create_task = FakeCreateTask()
     monkeypatch.setattr(
         "builtins.input",
         lambda _: "",
     )
 
-    add_task(service)
+    add_task(create_task)
 
     captured = capsys.readouterr()
     assert "Der Titel darf nicht leer sein." in captured.out
@@ -175,16 +186,17 @@ def test_remove_task_prints_error_when_task_not_found(monkeypatch, capsys):
 
 
 def test_run_cli_adds_task_and_exits(service, monkeypatch, capsys) -> None:
+    create_task = FakeCreateTask()
     mock_inputs(monkeypatch, ["1", "Python lernen", "5"])
-    run_cli(service)
-    captured = capsys.readouterr()
-    assert service.added_title == "Python lernen"
-    assert "TaskFlow wird beendet." in captured.out
+    run_cli(service, create_task)
+    assert create_task.added_title == "Python lernen"
+    assert "TaskFlow wird beendet." in capsys.readouterr().out
 
 
 def test_run_cli_prints_error_for_invalid_choice(service, monkeypatch, capsys) -> None:
     mock_inputs(monkeypatch, ["abc", "5"])
-    run_cli(service)
+    create_task = FakeCreateTask()
+    run_cli(service, create_task)
     captured = capsys.readouterr()
     assert "Ungültige Auswahl." in captured.out
     assert "TaskFlow wird beendet." in captured.out
