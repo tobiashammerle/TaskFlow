@@ -1,13 +1,14 @@
+from taskflow.application.create_task import CreateTask
 from taskflow.exceptions import EmptyTitleError, TaskNotFoundError
 from taskflow.task_service import TaskService
 
 
-def run_cli(task_service: TaskService) -> None:
+def run_cli(task_service: TaskService, create_task: CreateTask) -> None:
     while True:
         show_menu()
         choice = input("Auswahl: ").strip()
         if choice == "1":
-            add_task(task_service)
+            add_task(create_task)
         elif choice == "2":
             show_tasks(task_service)
         elif choice == "3":
@@ -34,11 +35,11 @@ def show_menu() -> None:
     print("5. Beenden")
 
 
-def add_task(task_service: TaskService) -> None:
+def add_task(create_task: CreateTask) -> None:
     """Fragt eine Aufgabe ab und fügt sie der Liste hinzu"""
     title = input("Titel der Aufgabe: ").strip()
     try:
-        task_service.add_task(title)
+        create_task.execute(title=title)
     except EmptyTitleError:
         print("Der Titel darf nicht leer sein.")
         return
