@@ -1,9 +1,14 @@
+from taskflow.application.complete_task import CompleteTask
 from taskflow.application.create_task import CreateTask
 from taskflow.exceptions import EmptyTitleError, TaskNotFoundError
 from taskflow.task_service import TaskService
 
 
-def run_cli(task_service: TaskService, create_task: CreateTask) -> None:
+def run_cli(
+    task_service: TaskService,
+    create_task: CreateTask,
+    complete_task_use_case: CompleteTask,
+) -> None:
     while True:
         show_menu()
         choice = input("Auswahl: ").strip()
@@ -12,7 +17,7 @@ def run_cli(task_service: TaskService, create_task: CreateTask) -> None:
         elif choice == "2":
             show_tasks(task_service)
         elif choice == "3":
-            complete_task(task_service)
+            complete_task(task_service, complete_task_use_case)
         elif choice == "4":
             remove_task(task_service)
         elif choice == "5":
@@ -57,7 +62,9 @@ def show_tasks(task_service: TaskService) -> None:
         print(f"{number}. {task}")
 
 
-def complete_task(task_service: TaskService) -> None:
+def complete_task(
+    task_service: TaskService, complete_task_use_case: CompleteTask
+) -> None:
     """Liest eine Aufgabennummer ein und markiert die Aufgabe als erledigt."""
     tasks = task_service.get_tasks()
     if not tasks:
@@ -76,11 +83,11 @@ def complete_task(task_service: TaskService) -> None:
     try:
         task_index = int(task_number) - 1
         task = tasks[task_index]
-        completed_task = task_service.complete_task(task.id)
+        complete_task_use_case.execute(task.id)
     except TaskNotFoundError as error:
         print(error)
         return
-    print(f'Aufgabe "{completed_task.title}" wurde als erledigt markiert')
+    print(f'Aufgabe "{task.title}" wurde als erledigt markiert')
 
 
 def remove_task(task_service: TaskService) -> None:
