@@ -1,15 +1,15 @@
 from taskflow.application.complete_task import CompleteTask
 from taskflow.application.create_task import CreateTask
+from taskflow.application.get_tasks import GetTasks
 from taskflow.application.remove_task import RemoveTask
 from taskflow.exceptions import EmptyTitleError, TaskNotFoundError
-from taskflow.task_service import TaskService
 
 
 def run_cli(
-    task_service: TaskService,
     create_task: CreateTask,
     complete_task_use_case: CompleteTask,
     remove_task_use_case: RemoveTask,
+    get_tasks_use_case: GetTasks,
 ) -> None:
     while True:
         show_menu()
@@ -17,11 +17,11 @@ def run_cli(
         if choice == "1":
             add_task(create_task)
         elif choice == "2":
-            show_tasks(task_service)
+            show_tasks(get_tasks_use_case)
         elif choice == "3":
-            complete_task(task_service, complete_task_use_case)
+            complete_task(get_tasks_use_case, complete_task_use_case)
         elif choice == "4":
-            remove_task(task_service, remove_task_use_case)
+            remove_task(get_tasks_use_case, remove_task_use_case)
         elif choice == "5":
             print("TaskFlow wird beendet. ")
             break
@@ -53,9 +53,9 @@ def add_task(create_task: CreateTask) -> None:
     print("Aufgabe wurde hinzugefügt. ")
 
 
-def show_tasks(task_service: TaskService) -> None:
+def show_tasks(get_tasks_use_case: GetTasks) -> None:
     """Zeigt alle vorhandenen Aufgaben an."""
-    tasks = task_service.get_tasks()
+    tasks = get_tasks_use_case.execute()
     if not tasks:
         print("Es sind noch keine Aufgaben vorhanden. ")
         return
@@ -65,14 +65,14 @@ def show_tasks(task_service: TaskService) -> None:
 
 
 def complete_task(
-    task_service: TaskService, complete_task_use_case: CompleteTask
+    get_tasks_use_case: GetTasks, complete_task_use_case: CompleteTask
 ) -> None:
     """Liest eine Aufgabennummer ein und markiert die Aufgabe als erledigt."""
-    tasks = task_service.get_tasks()
+    tasks = get_tasks_use_case.execute()
     if not tasks:
         print("Es sind keine weiteren Aufgaben zum Erledigen vorhanden. ")
         return
-    show_tasks(task_service)
+    show_tasks(get_tasks_use_case)
     task_number = input("Nummer der zu erledigenden Aufgabe: ").strip()
 
     if not task_number.isdigit():
@@ -92,14 +92,14 @@ def complete_task(
     print(f'Aufgabe "{task.title}" wurde als erledigt markiert')
 
 
-def remove_task(task_service: TaskService, remove_task_use_case: RemoveTask) -> None:
+def remove_task(get_tasks_use_case: GetTasks, remove_task_use_case: RemoveTask) -> None:
     """löscht eine Aufgabe anhand ihrer angezeigten Nummer."""
-    tasks = task_service.get_tasks()
+    tasks = get_tasks_use_case.execute()
 
     if not tasks:
         print("Es sind keine Aufgaben zum Löschen vorhanden.")
         return
-    show_tasks(task_service)
+    show_tasks(get_tasks_use_case)
     task_number = input("Nummer der zu löschenden Aufgabe: ").strip()
     if not task_number.isdigit():
         print("Gib eine gültige Zahl ein. ")
