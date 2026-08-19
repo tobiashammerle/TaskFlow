@@ -1,5 +1,6 @@
 from taskflow.application.complete_task import CompleteTask
 from taskflow.application.create_task import CreateTask
+from taskflow.application.remove_task import RemoveTask
 from taskflow.exceptions import EmptyTitleError, TaskNotFoundError
 from taskflow.task_service import TaskService
 
@@ -8,6 +9,7 @@ def run_cli(
     task_service: TaskService,
     create_task: CreateTask,
     complete_task_use_case: CompleteTask,
+    remove_task_use_case: RemoveTask,
 ) -> None:
     while True:
         show_menu()
@@ -19,7 +21,7 @@ def run_cli(
         elif choice == "3":
             complete_task(task_service, complete_task_use_case)
         elif choice == "4":
-            remove_task(task_service)
+            remove_task(task_service, remove_task_use_case)
         elif choice == "5":
             print("TaskFlow wird beendet. ")
             break
@@ -90,7 +92,7 @@ def complete_task(
     print(f'Aufgabe "{task.title}" wurde als erledigt markiert')
 
 
-def remove_task(task_service: TaskService) -> None:
+def remove_task(task_service: TaskService, remove_task_use_case: RemoveTask) -> None:
     """löscht eine Aufgabe anhand ihrer angezeigten Nummer."""
     tasks = task_service.get_tasks()
 
@@ -109,7 +111,7 @@ def remove_task(task_service: TaskService) -> None:
     try:
         task_index = task_number_int - 1
         task = tasks[task_index]
-        removed_task = task_service.remove_task(task.id)
+        removed_task = remove_task_use_case.execute(task.id)
     except TaskNotFoundError as error:
         print(error)
         return
