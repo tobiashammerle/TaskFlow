@@ -35,6 +35,15 @@ class FakeCompleteTask:
         self.completed_task_id = task_id
 
 
+class FakeRemoveTask:
+    def __init__(self) -> None:
+        self.removed_task_id = None
+
+    def execute(self, task_id) -> Task:
+        self.removed_task_id = task_id
+        return Task("Git lernen")
+
+
 class FakeTaskService:
     def __init__(self, tasks=None) -> None:
         self.added_title: str | None = None
@@ -75,6 +84,11 @@ class FakeFailingCompleteTaskService:
 
 class FakeFailingCompleteTask:
     def execute(self, task_id) -> None:
+        raise TaskNotFoundError(f"Keine Aufgabe mit ID {task_id} gefunden.")
+
+
+class FakeFailingRemoveTask:
+    def execute(self, task_id):
         raise TaskNotFoundError(f"Keine Aufgabe mit ID {task_id} gefunden.")
 
 
@@ -177,17 +191,19 @@ def test_complete_task_prints_error_when_task_not_found(monkeypatch, capsys) -> 
 def test_remove_task_with_fake_service_removes_selected_task(
     fake_service_with_tasks, monkeypatch, capsys
 ):
+    remove_task_use_case = FakeRemoveTask()
     selected_task = fake_service_with_tasks.tasks[1]
     mock_inputs(monkeypatch, ["2"])
-    remove_task(fake_service_with_tasks)
+    remove_task(fake_service_with_tasks, remove_task_use_case)
     captured = capsys.readouterr()
-    assert fake_service_with_tasks.removed_task_id == selected_task.id
+    assert remove_task_use_case.removed_task_id == selected_task.id
     assert 'Die Aufgabe "Git lernen" wurde gelöscht.' in captured.out
 
 
 def test_remove_task_prints_error_when_no_existing_tasks(capsys) -> None:
     service = FakeTaskService()
-    remove_task(service)
+    remove_task_use_case = FakeRemoveTask()
+    remove_task(service, remove_task_use_case)
     captured = capsys.readouterr()
     assert "Es sind keine Aufgaben zum Löschen vorhanden." in captured.out
 
@@ -195,8 +211,9 @@ def test_remove_task_prints_error_when_no_existing_tasks(capsys) -> None:
 def test_remove_task_prints_error_when_task_not_found(monkeypatch, capsys):
     service = FakeFailingRemoveTaskService()
     selected_task = service.get_tasks()[0]
+    remove_task_use_case = FakeFailingRemoveTask()
     mock_inputs(monkeypatch, ["1"])
-    remove_task(service)
+    remove_task(service, remove_task_use_case)
     captured = capsys.readouterr()
     assert f"Keine Aufgabe mit ID {selected_task.id} gefunden." in captured.out
 
@@ -204,8 +221,9 @@ def test_remove_task_prints_error_when_task_not_found(monkeypatch, capsys):
 def test_run_cli_adds_task_and_exits(service, monkeypatch, capsys) -> None:
     create_task = FakeCreateTask()
     complete_task_use_case = FakeCompleteTask()
+    remove_task_use_case = FakeRemoveTask()
     mock_inputs(monkeypatch, ["1", "Python lernen", "5"])
-    run_cli(service, create_task, complete_task_use_case)
+    run_cli(service, create_task, complete_task_use_case, remove_task_use_case)
     assert create_task.added_title == "Python lernen"
     assert "TaskFlow wird beendet." in capsys.readouterr().out
 
@@ -214,13 +232,14 @@ def test_run_cli_prints_error_for_invalid_choice(service, monkeypatch, capsys) -
     mock_inputs(monkeypatch, ["abc", "5"])
     create_task = FakeCreateTask()
     complete_task_use_case = FakeCompleteTask()
-    run_cli(service, create_task, complete_task_use_case)
+    remove_task_use_case = FakeRemoveTask()
+    run_cli(service, create_task, complete_task_use_case, remove_task_use_case)
     captured = capsys.readouterr()
     assert "Ungültige Auswahl." in captured.out
     assert "TaskFlow wird beendet." in captured.out
 
 
-def test_complete_task_calls_service_with_selected_task_id(
+def test_complete_task_calls_use_case_with_selected_task_id(
     mock_task_service, monkeypatch
 ) -> None:
     complete_task_use_case = FakeCompleteTask()
@@ -244,7 +263,7 @@ def test_complete_task_prints_error_when_use_case_raises(
     assert f"Keine Aufgabe mit ID {selected_task.id} gefunden." in captured.out
 
 
-def test_complete_task_does_not_call_service_for_invalid_input(
+def test_complete_task_does_not_call_use_case_for_invalid_input(
     mock_task_service, monkeypatch, capsys
 ) -> None:
     complete_task_use_case = FakeCompleteTask()
@@ -255,7 +274,7 @@ def test_complete_task_does_not_call_service_for_invalid_input(
     assert complete_task_use_case.completed_task_id is None
 
 
-def test_complete_task_does_not_call_service_for_zero(
+def test_complete_task_does_not_call_use_case_for_zero(
     mock_task_service, monkeypatch, capsys
 ) -> None:
     complete_task_use_case = FakeCompleteTask()
@@ -266,7 +285,7 @@ def test_complete_task_does_not_call_service_for_zero(
     assert complete_task_use_case.completed_task_id is None
 
 
-def test_complete_task_does_not_call_service_for_number_out_of_range(
+def test_complete_task_does_not_call_use_case_for_number_out_of_range(
     mock_task_service, monkeypatch, capsys
 ) -> None:
     complete_task_use_case = FakeCompleteTask()
@@ -277,35 +296,34 @@ def test_complete_task_does_not_call_service_for_number_out_of_range(
     assert complete_task_use_case.completed_task_id is None
 
 
-def test_remove_task_passes_correct_task_id_to_service(
+def test_remove_task_passes_correct_task_id_to_use_case(
     mock_task_service, monkeypatch
 ) -> None:
+    remove_task_use_case = FakeRemoveTask()
     selected_task = mock_task_service.get_tasks.return_value[1]
     mock_task_service.remove_task.return_value = selected_task
     mock_inputs(monkeypatch, ["2"])
-    remove_task(mock_task_service)
-    mock_task_service.remove_task.assert_called_once_with(selected_task.id)
+    remove_task(mock_task_service, remove_task_use_case)
+    assert remove_task_use_case.removed_task_id == selected_task.id
 
 
-def test_remove_task_does_not_call_service_for_invalid_input(
+def test_remove_task_does_not_call_use_case_for_invalid_input(
     mock_task_service, monkeypatch, capsys
 ) -> None:
+    remove_task_use_case = FakeRemoveTask()
     mock_inputs(monkeypatch, ["abc"])
-    remove_task(mock_task_service)
+    remove_task(mock_task_service, remove_task_use_case)
     captured = capsys.readouterr()
     assert "Gib eine gültige Zahl ein." in captured.out
-    mock_task_service.remove_task.assert_not_called()
+    assert remove_task_use_case.removed_task_id is None
 
 
-def test_remove_task_prints_error_when_service_raises(
+def test_remove_task_prints_error_when_use_case_raises(
     mock_task_service, monkeypatch, capsys
 ) -> None:
     selected_task = mock_task_service.get_tasks.return_value[0]
-    mock_task_service.remove_task.side_effect = TaskNotFoundError(
-        f"Keine Aufgabe mit ID {selected_task.id} gefunden."
-    )
+    remove_task_use_case = FakeFailingRemoveTask()
     mock_inputs(monkeypatch, ["1"])
-    remove_task(mock_task_service)
+    remove_task(mock_task_service, remove_task_use_case)
     captured = capsys.readouterr()
     assert f"Keine Aufgabe mit ID {selected_task.id} gefunden." in captured.out
-    mock_task_service.remove_task.assert_called_once_with(selected_task.id)
