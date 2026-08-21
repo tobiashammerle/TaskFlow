@@ -1,15 +1,12 @@
 from taskflow.priority import Priority
 from taskflow.sort_field import SortField
 from taskflow.task import Task
-from taskflow.task_repository import TaskRepository
 
 
 class SortTasks:
-    def __init__(self, repository: TaskRepository) -> None:
-        self.repository = repository
-
-    def execute(self, field: SortField, reverse: bool = False) -> list[Task]:
-        tasks = self.repository.get_all()
+    def execute(
+        self, tasks: list[Task], field: SortField, reverse: bool = False
+    ) -> list[Task]:
         if field == SortField.TITLE:
             return sorted(tasks, key=lambda task: task.title, reverse=reverse)
         elif field == SortField.PRIORITY:
