@@ -2,6 +2,7 @@ import logging
 from datetime import date
 from uuid import UUID
 
+from taskflow.application.search_tasks import SearchTasks
 from taskflow.exceptions import TaskNotFoundError
 from taskflow.filter_type import FilterType
 from taskflow.priority import Priority
@@ -96,13 +97,9 @@ class TaskService:
         return tasks
 
     def search_tasks(self, search_text: str) -> list[Task]:
-        normalized_search_text = search_text.strip().casefold()
-        tasks = (
-            self.repository.get_all()
-        )  # Aktualisiere die Aufgabenliste vor der Suche
-        return [
-            task for task in tasks if normalized_search_text in task.title.casefold()
-        ]
+        tasks = self.repository.get_all()
+        search_tasks = SearchTasks()
+        return search_tasks.execute(tasks, search_text)
 
     def get_statistics(self) -> None:
         tasks = (
