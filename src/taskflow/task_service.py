@@ -2,6 +2,7 @@ import logging
 from datetime import date
 from uuid import UUID
 
+from taskflow.application.filter_tasks import FilterTasks
 from taskflow.application.get_statistics import GetStatistics
 from taskflow.application.search_tasks import SearchTasks
 from taskflow.exceptions import TaskNotFoundError
@@ -78,24 +79,9 @@ class TaskService:
         self.repository.save(tasks)  # Speichere die sortierte Liste in der Repository
 
     def filter_tasks(self, filter_type: FilterType) -> list[Task]:
-        tasks = (
-            self.repository.get_all()
-        )  # Aktualisiere die Aufgabenliste vor dem Filtern
-        if filter_type == FilterType.COMPLETED:
-            return [task for task in tasks if task.completed]
-        elif filter_type == FilterType.OPEN:
-            return [task for task in tasks if not task.completed]
-        elif filter_type == FilterType.HIGH_PRIORITY:
-            return [task for task in tasks if task.priority == Priority.HIGH]
-        elif filter_type == FilterType.MEDIUM_PRIORITY:
-            return [task for task in tasks if task.priority == Priority.MEDIUM]
-        elif filter_type == FilterType.LOW_PRIORITY:
-            return [task for task in tasks if task.priority == Priority.LOW]
-        elif filter_type == FilterType.WITH_DUE_DATE:
-            return [task for task in tasks if task.due_date is not None]
-        elif filter_type == FilterType.WITHOUT_DUE_DATE:
-            return [task for task in tasks if task.due_date is None]
-        return tasks
+        tasks = self.repository.get_all()
+        filter_tasks = FilterTasks()
+        return filter_tasks.execute(tasks, filter_type)
 
     def search_tasks(self, search_text: str) -> list[Task]:
         tasks = self.repository.get_all()
