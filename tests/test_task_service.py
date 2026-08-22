@@ -167,28 +167,21 @@ def test_sort_tasks_by_title(service: TaskService) -> None:
     service.add_task("C")
     service.add_task("A")
     service.add_task("B")
-    service.sort_tasks(SortField.TITLE)
-    titles = [task.title for task in service.get_tasks()]
-    assert titles == [
-        "A",
-        "B",
-        "C",
-    ]
+    sorted_task_list = service.sort_tasks(SortField.TITLE)
+    # titles = [task.title for task in service.get_tasks()]
+    assert sorted_task_list[0].title == "A"
+    assert sorted_task_list[1].title == "B"
+    assert sorted_task_list[2].title == "C"
 
 
 def test_sort_task_by_priority(service: TaskService) -> None:
     service.add_task("Mittlere Aufgabe", priority=Priority.MEDIUM)
     service.add_task("Niedrige Aufgabe", priority=Priority.LOW)
     service.add_task("Hohe Aufgabe", priority=Priority.HIGH)
-
-    service.sort_tasks(SortField.PRIORITY)
-    priorities = [task.priority for task in service.get_tasks()]
-
-    assert priorities == [
-        Priority.HIGH,
-        Priority.MEDIUM,
-        Priority.LOW,
-    ]
+    sorted_priority_list = service.sort_tasks(SortField.PRIORITY)
+    assert sorted_priority_list[0].priority == Priority.HIGH
+    assert sorted_priority_list[1].priority == Priority.MEDIUM
+    assert sorted_priority_list[2].priority == Priority.LOW
 
 
 def test_sort_tasks_by_due_date(service: TaskService) -> None:
@@ -196,27 +189,20 @@ def test_sort_tasks_by_due_date(service: TaskService) -> None:
     service.add_task("Steuererklärung", due_date=date(2026, 8, 15))
     service.add_task("Git üben", due_date=date(2026, 8, 10))
 
-    service.sort_tasks(SortField.DUE_DATE)
-    titles = [task.title for task in service.get_tasks()]
-    assert titles == [
-        "Git üben",
-        "Steuererklärung",
-        "Python lernen",
-    ]
+    sorted_tasks_list = service.sort_tasks(SortField.DUE_DATE)
+    assert sorted_tasks_list[0].due_date == date(2026, 8, 10)
+    assert sorted_tasks_list[1].due_date == date(2026, 8, 15)
+    assert sorted_tasks_list[2].due_date == date(2026, 8, 20)
 
 
 def test_sort_tasks_by_due_date_without_due_date(service: TaskService) -> None:
     service.add_task("Python lernen")
     service.add_task("Steuererklärung", due_date=date(2026, 8, 15))
     service.add_task("Git üben", due_date=date(2026, 8, 10))
-    service.sort_tasks(SortField.DUE_DATE)
-    titles = [task.title for task in service.get_tasks()]
-
-    assert titles == [
-        "Git üben",
-        "Steuererklärung",
-        "Python lernen",
-    ]
+    sorted_task_list = service.sort_tasks(SortField.DUE_DATE)
+    assert sorted_task_list[0].due_date == date(2026, 8, 10)
+    assert sorted_task_list[1].due_date == date(2026, 8, 15)
+    assert sorted_task_list[2].title == "Python lernen"
 
 
 def test_filter_completed_tasks(service: TaskService) -> None:
