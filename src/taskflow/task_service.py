@@ -5,6 +5,7 @@ from uuid import UUID
 from taskflow.application.filter_tasks import FilterTasks
 from taskflow.application.get_statistics import GetStatistics
 from taskflow.application.search_tasks import SearchTasks
+from taskflow.application.sort_tasks import SortTasks
 from taskflow.exceptions import TaskNotFoundError
 from taskflow.filter_type import FilterType
 from taskflow.priority import Priority
@@ -56,27 +57,10 @@ class TaskService:
         logger.info("Aufgabe abgeschlossen: %s", task.title)
         return task
 
-    def sort_tasks(self, field: SortField, reverse: bool = False) -> None:
-        tasks = (
-            self.repository.get_all()
-        )  # Aktualisiere die Aufgabenliste vor dem Sortieren
-        if field == SortField.TITLE:
-            tasks.sort(key=lambda task: task.title, reverse=reverse)
-        elif field == SortField.PRIORITY:
-            priority_order = {
-                Priority.HIGH: 1,
-                Priority.MEDIUM: 2,
-                Priority.LOW: 3,
-            }
-            tasks.sort(
-                key=lambda task: priority_order[task.priority],
-                reverse=reverse,
-            )
-        elif field == SortField.DUE_DATE:
-            tasks.sort(
-                key=lambda task: (task.due_date is None, task.due_date), reverse=reverse
-            )
-        self.repository.save(tasks)  # Speichere die sortierte Liste in der Repository
+    def sort_tasks(self, field: SortField, reverse: bool = False) -> list[Task]:
+        tasks = self.repository.get_all()
+        sort_tasks = SortTasks()
+        return sort_tasks.execute(tasks, field, reverse)
 
     def filter_tasks(self, filter_type: FilterType) -> list[Task]:
         tasks = self.repository.get_all()
