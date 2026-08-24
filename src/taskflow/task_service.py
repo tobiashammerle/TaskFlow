@@ -5,6 +5,7 @@ from uuid import UUID
 from taskflow.application.create_task import CreateTask
 from taskflow.application.filter_tasks import FilterTasks
 from taskflow.application.get_statistics import GetStatistics
+from taskflow.application.remove_task import RemoveTask
 from taskflow.application.search_tasks import SearchTasks
 from taskflow.application.sort_tasks import SortTasks
 from taskflow.exceptions import TaskNotFoundError
@@ -38,12 +39,10 @@ class TaskService:
 
     def remove_task(self, task_id: UUID) -> Task:
         """Entfernt eine Aufgabe anhand ihrer ID."""
-        task = self.repository.get_by_id(task_id)
-        if task is None:
-            raise TaskNotFoundError(f"Keine Aufgabe mit ID {task_id} gefunden.")
-        self.repository.delete(task_id)
-        logger.info("Aufgabe gelöscht: %s", task.title)
-        return task
+        remove_task = RemoveTask(self.repository)
+        removed_task = remove_task.execute(task_id)
+        logger.info("Aufgabe gelöscht: %s", removed_task.title)
+        return removed_task
 
     def get_tasks(self) -> list[Task]:
         """Gibt die aktuelle Aufgabenliste zurück."""
