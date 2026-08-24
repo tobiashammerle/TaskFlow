@@ -1,8 +1,12 @@
 import configparser
 from pathlib import Path
 
+from dotenv import load_dotenv
+
 from taskflow.exceptions import ConfigurationError
 from taskflow.repository_type import RepositoryType
+
+load_dotenv()
 
 
 def load_repository_type(file_path: Path) -> RepositoryType:

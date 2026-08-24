@@ -31,3 +31,6 @@ logs/
 # Betriebssystemdateien
 .DS_Store
 Thumbs.db
+
+# Environment / Secrets
+.env
