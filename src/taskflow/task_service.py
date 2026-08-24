@@ -2,6 +2,7 @@ import logging
 from datetime import date
 from uuid import UUID
 
+from taskflow.application.complete_task import CompleteTask
 from taskflow.application.create_task import CreateTask
 from taskflow.application.filter_tasks import FilterTasks
 from taskflow.application.get_statistics import GetStatistics
@@ -9,7 +10,6 @@ from taskflow.application.get_tasks import GetTasks
 from taskflow.application.remove_task import RemoveTask
 from taskflow.application.search_tasks import SearchTasks
 from taskflow.application.sort_tasks import SortTasks
-from taskflow.exceptions import TaskNotFoundError
 from taskflow.filter_type import FilterType
 from taskflow.priority import Priority
 from taskflow.sort_field import SortField
@@ -51,13 +51,10 @@ class TaskService:
         return get_tasks.execute()
 
     def complete_task(self, task_id: UUID) -> Task:
-        task = self.repository.get_by_id(task_id)
-        if task is None:
-            raise TaskNotFoundError(f"Keine Aufgabe mit ID {task_id} gefunden.")
-        task.complete()
-        self.repository.update(task)
-        logger.info("Aufgabe abgeschlossen: %s", task.title)
-        return task
+        complete_task = CompleteTask(self.repository)
+        completed_task = complete_task.execute(task_id)
+        logger.info("Aufgabe abgeschlossen: %s", completed_task.title)
+        return completed_task
 
     def sort_tasks(self, field: SortField, reverse: bool = False) -> list[Task]:
         tasks = self.repository.get_all()
