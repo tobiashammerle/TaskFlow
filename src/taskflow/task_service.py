@@ -2,6 +2,7 @@ import logging
 from datetime import date
 from uuid import UUID
 
+from taskflow.application.create_task import CreateTask
 from taskflow.application.filter_tasks import FilterTasks
 from taskflow.application.get_statistics import GetStatistics
 from taskflow.application.search_tasks import SearchTasks
@@ -28,12 +29,12 @@ class TaskService:
         title: str,
         priority: Priority = Priority.MEDIUM,
         due_date: date | None = None,
-    ) -> None:
+    ) -> Task:
         """Fügt eine Aufgabe hinzu, wenn der Titel nicht leer ist."""
-
-        task = Task(title, priority=priority, due_date=due_date)
-        self.repository.add(task)
+        create_task = CreateTask(self.repository)
+        task = create_task.execute(title, priority, due_date)
         logger.info("Aufgabe erstellt: %s", task.title)
+        return task
 
     def remove_task(self, task_id: UUID) -> Task:
         """Entfernt eine Aufgabe anhand ihrer ID."""
