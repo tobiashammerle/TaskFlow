@@ -5,6 +5,7 @@ from uuid import UUID
 from taskflow.application.create_task import CreateTask
 from taskflow.application.filter_tasks import FilterTasks
 from taskflow.application.get_statistics import GetStatistics
+from taskflow.application.get_tasks import GetTasks
 from taskflow.application.remove_task import RemoveTask
 from taskflow.application.search_tasks import SearchTasks
 from taskflow.application.sort_tasks import SortTasks
@@ -46,7 +47,8 @@ class TaskService:
 
     def get_tasks(self) -> list[Task]:
         """Gibt die aktuelle Aufgabenliste zurück."""
-        return self.repository.get_all()
+        get_tasks = GetTasks(self.repository)
+        return get_tasks.execute()
 
     def complete_task(self, task_id: UUID) -> Task:
         task = self.repository.get_by_id(task_id)
