@@ -5,7 +5,6 @@ import taskflow.main as main_module
 
 def test_main_connects_application_components(monkeypatch) -> None:
     repository = Mock()
-    task_service = Mock()
     create_task = Mock()
     complete_task = Mock()
     remove_task = Mock()
@@ -16,11 +15,6 @@ def test_main_connects_application_components(monkeypatch) -> None:
         main_module,
         "create_repository",
         Mock(return_value=repository),
-    )
-    monkeypatch.setattr(
-        main_module,
-        "TaskService",
-        Mock(return_value=task_service),
     )
     monkeypatch.setattr(main_module, "run_cli", Mock())
     monkeypatch.setattr(main_module, "CreateTask", Mock(return_value=create_task))
