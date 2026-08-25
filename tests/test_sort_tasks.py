@@ -52,9 +52,7 @@ def test_sort_tasks_by_due_date_returns_earliest_due_date_first_and_none_last() 
     assert sorted_tasks[2].title == "Ohne Datum"
 
 
-def test_sort_tasks_by_title_with_reverse_returns_tasks_in_reverse_alphabetical_order() -> (
-    None
-):
+def test_sort_tasks_by_title_reverse_returns_reverse_order() -> None:
     repository = FakeTaskRepository()
     repository.add(Task("Einkaufen"))
     repository.add(Task("Git lernen"))
