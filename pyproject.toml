@@ -12,5 +12,20 @@ dependencies = [
     "python-dotenv>=1.2.3",
 ]
 
+[project.optional-dependencies]
+dev = [
+    "pre-commit",
+    "pytest",
+    "pytest-cov",
+    "ruff",
+]
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
+
 [tool.setuptools.packages.find]
 where = ["src"]

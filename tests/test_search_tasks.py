@@ -38,9 +38,7 @@ def test_search_tasks_with_empty_string_returns_complete_task_list() -> None:
     assert found_tasks[1].title == "Git lernen"
 
 
-def test_search_tasks_with_only_whitespaces_in_search_text_returns_complete_task_list() -> (
-    None
-):
+def test_search_tasks_with_whitespaces_returns_all_tasks() -> None:
     tasks = [Task("Python lernen"), Task("Git lernen")]
     search_tasks = SearchTasks()
     found_tasks = search_tasks.execute(tasks, "   ")
