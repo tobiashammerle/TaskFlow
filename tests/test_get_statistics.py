@@ -30,7 +30,7 @@ def test_get_statistics_counts_high_priority_tasks() -> None:
 
 
 def test_get_statistics_returns_zero_for_empty_task_list() -> None:
-    tasks = []
+    tasks: list[Task] = []
     get_statistics = GetStatistics()
     statistics = get_statistics.execute(tasks)
     assert statistics.total_tasks == 0

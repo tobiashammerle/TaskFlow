@@ -1,15 +1,38 @@
-from taskflow.application.complete_task import CompleteTask
-from taskflow.application.create_task import CreateTask
-from taskflow.application.get_tasks import GetTasks
-from taskflow.application.remove_task import RemoveTask
+from datetime import date
+from typing import Protocol
+from uuid import UUID
+
 from taskflow.exceptions import EmptyTitleError, TaskNotFoundError
+from taskflow.priority import Priority
+from taskflow.task import Task
+
+
+class CreateTaskHandler(Protocol):
+    def execute(
+        self,
+        title: str,
+        priority: Priority = Priority.MEDIUM,
+        due_date: date | None = None,
+    ) -> Task: ...
+
+
+class GetTasksHandler(Protocol):
+    def execute(self) -> list[Task]: ...
+
+
+class CompleteTaskHandler(Protocol):
+    def execute(self, task_id: UUID) -> Task: ...
+
+
+class RemoveTaskHandler(Protocol):
+    def execute(self, task_id: UUID) -> Task: ...
 
 
 def run_cli(
-    create_task: CreateTask,
-    complete_task_use_case: CompleteTask,
-    remove_task_use_case: RemoveTask,
-    get_tasks_use_case: GetTasks,
+    create_task: CreateTaskHandler,
+    complete_task_use_case: CompleteTaskHandler,
+    remove_task_use_case: RemoveTaskHandler,
+    get_tasks_use_case: GetTasksHandler,
 ) -> None:
     while True:
         show_menu()
@@ -42,7 +65,7 @@ def show_menu() -> None:
     print("5. Beenden")
 
 
-def add_task(create_task: CreateTask) -> None:
+def add_task(create_task: CreateTaskHandler) -> None:
     """Fragt eine Aufgabe ab und fügt sie der Liste hinzu"""
     title = input("Titel der Aufgabe: ").strip()
     try:
@@ -53,7 +76,7 @@ def add_task(create_task: CreateTask) -> None:
     print("Aufgabe wurde hinzugefügt. ")
 
 
-def show_tasks(get_tasks_use_case: GetTasks) -> None:
+def show_tasks(get_tasks_use_case: GetTasksHandler) -> None:
     """Zeigt alle vorhandenen Aufgaben an."""
     tasks = get_tasks_use_case.execute()
     if not tasks:
@@ -65,7 +88,7 @@ def show_tasks(get_tasks_use_case: GetTasks) -> None:
 
 
 def complete_task(
-    get_tasks_use_case: GetTasks, complete_task_use_case: CompleteTask
+    get_tasks_use_case: GetTasksHandler, complete_task_use_case: CompleteTaskHandler
 ) -> None:
     """Liest eine Aufgabennummer ein und markiert die Aufgabe als erledigt."""
     tasks = get_tasks_use_case.execute()
@@ -92,7 +115,9 @@ def complete_task(
     print(f'Aufgabe "{task.title}" wurde als erledigt markiert')
 
 
-def remove_task(get_tasks_use_case: GetTasks, remove_task_use_case: RemoveTask) -> None:
+def remove_task(
+    get_tasks_use_case: GetTasksHandler, remove_task_use_case: RemoveTaskHandler
+) -> None:
     """löscht eine Aufgabe anhand ihrer angezeigten Nummer."""
     tasks = get_tasks_use_case.execute()
 

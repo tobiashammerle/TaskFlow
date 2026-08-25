@@ -1,3 +1,4 @@
+from datetime import date
 from unittest.mock import create_autospec
 from uuid import UUID
 
@@ -5,6 +6,7 @@ import pytest
 
 from taskflow.cli import add_task, complete_task, remove_task, run_cli, show_tasks
 from taskflow.exceptions import EmptyTitleError, TaskNotFoundError
+from taskflow.priority import Priority
 from taskflow.task import Task
 from taskflow.task_service import TaskService
 
@@ -21,18 +23,28 @@ class FakeCreateTask:
     def __init__(self) -> None:
         self.added_title: str | None = None
 
-    def execute(self, title: str) -> None:
+    def execute(
+        self,
+        title: str,
+        priority: Priority = Priority.MEDIUM,
+        due_date: date | None = None,
+    ) -> Task:
         if not title:
             raise EmptyTitleError
         self.added_title = title
+        return Task(title=title, priority=priority, due_date=due_date)
 
 
 class FakeCompleteTask:
-    def __init__(self) -> None:
-        self.completed_task_id = None
+    def __init__(self, task: Task | None = None) -> None:
+        self.task: Task | None = task
+        self.completed_task_id: UUID | None = None
 
-    def execute(self, task_id) -> None:
+    def execute(self, task_id: UUID) -> Task:
         self.completed_task_id = task_id
+        if self.task is None:
+            raise AssertionError("FakeCompleteTask wurde unerwartet ausgeführt.")
+        return self.task
 
 
 class FakeGetTasks:
@@ -91,7 +103,7 @@ class FakeFailingCompleteTaskService:
 
 
 class FakeFailingCompleteTask:
-    def execute(self, task_id) -> None:
+    def execute(self, task_id: UUID) -> Task:
         raise TaskNotFoundError(f"Keine Aufgabe mit ID {task_id} gefunden.")
 
 
@@ -168,7 +180,7 @@ def test_show_tasks_prints_existing_tasks(capsys) -> None:
 def test_complete_task_passes_correct_task_id_to_use_case(monkeypatch, capsys) -> None:
     tasks = [Task("Python lernen"), Task("Git lernen")]
     get_tasks_use_case = FakeGetTasks(tasks)
-    complete_task_use_case = FakeCompleteTask()
+    complete_task_use_case = FakeCompleteTask(tasks[1])
     mock_inputs(monkeypatch, ["2"])
     complete_task(get_tasks_use_case, complete_task_use_case)
     captured = capsys.readouterr()
@@ -254,10 +266,10 @@ def test_run_cli_prints_error_for_invalid_choice(monkeypatch, capsys) -> None:
 
 
 def test_complete_task_calls_use_case_with_selected_task_id(monkeypatch) -> None:
-    complete_task_use_case = FakeCompleteTask()
     task_1 = Task("Python lernen")
     task_2 = Task("Git üben")
     tasks = [task_1, task_2]
+    complete_task_use_case = FakeCompleteTask(task_2)
     get_tasks_use_case = FakeGetTasks(tasks)
     mock_inputs(monkeypatch, ["2"])
     complete_task(get_tasks_use_case, complete_task_use_case)
