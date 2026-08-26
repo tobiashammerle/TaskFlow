@@ -1,5 +1,7 @@
 import logging
 
+from dotenv import load_dotenv
+
 from taskflow.application.complete_task import CompleteTask
 from taskflow.application.create_task import CreateTask
 from taskflow.application.get_tasks import GetTasks
@@ -13,6 +15,7 @@ logger = logging.getLogger(__name__)
 
 def main() -> None:
     """Startet die TaskFlow-Anwendung."""
+    load_dotenv()
     configure_logging()
     logger.info("TaskFlow gestartet")
 
