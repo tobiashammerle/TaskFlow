@@ -2,11 +2,7 @@ import logging
 import os
 from pathlib import Path
 
-from dotenv import load_dotenv
-
 from taskflow.exceptions import ConfigurationError
-
-load_dotenv()
 
 
 def configure_logging() -> None:
