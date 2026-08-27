@@ -1,12 +1,8 @@
 import configparser
 from pathlib import Path
 
-from dotenv import load_dotenv
-
 from taskflow.exceptions import ConfigurationError
 from taskflow.repository_type import RepositoryType
-
-load_dotenv()
 
 
 def load_repository_type(file_path: Path) -> RepositoryType:
@@ -17,9 +13,3 @@ def load_repository_type(file_path: Path) -> RepositoryType:
         return RepositoryType(repository_value)
     except (KeyError, ValueError) as error:
         raise ConfigurationError("Ungültige Repository-Konfiguration.") from error
-
-
-REPOSITORY = load_repository_type(Path("settings.ini"))
-
-
-# REPOSITORY = "json"

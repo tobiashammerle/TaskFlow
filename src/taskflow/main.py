@@ -1,4 +1,5 @@
 import logging
+from pathlib import Path
 
 from dotenv import load_dotenv
 
@@ -7,6 +8,7 @@ from taskflow.application.create_task import CreateTask
 from taskflow.application.get_tasks import GetTasks
 from taskflow.application.remove_task import RemoveTask
 from taskflow.cli import run_cli
+from taskflow.config import load_repository_type
 from taskflow.logging_config import configure_logging
 from taskflow.repository_factory import create_repository
 
@@ -19,7 +21,8 @@ def main() -> None:
     configure_logging()
     logger.info("TaskFlow gestartet")
 
-    repository = create_repository()
+    repository_type = load_repository_type(Path("settings.ini"))
+    repository = create_repository(repository_type)
     create_task = CreateTask(repository)
     complete_task = CompleteTask(repository)
     remove_task = RemoveTask(repository)
