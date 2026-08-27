@@ -3,6 +3,7 @@ from datetime import date
 from pathlib import Path
 from uuid import UUID
 
+from taskflow.exceptions import RepositoryError
 from taskflow.priority import Priority
 from taskflow.task import Task
 
@@ -67,19 +68,58 @@ class SqliteTaskRepository:
                 )
 
     def get_all(self) -> list[Task]:
-        with sqlite3.connect(self.database_path) as connection:
-            cursor = connection.cursor()
-            cursor.execute(
-                """
-                SELECT task_id, title, completed, priority, due_date
-                FROM tasks
-                ORDER BY id
-                """
-            )
-            rows = cursor.fetchall()
-        tasks: list[Task] = []
+        try:
+            with sqlite3.connect(self.database_path) as connection:
+                cursor = connection.cursor()
+                cursor.execute(
+                    """
+                    SELECT task_id, title, completed, priority, due_date
+                    FROM tasks
+                    ORDER BY id
+                    """
+                )
+                rows = cursor.fetchall()
+            tasks: list[Task] = []
 
-        for task_id, title, completed, priority, due_date_value in rows:
+            for task_id, title, completed, priority, due_date_value in rows:
+                task = Task(
+                    title=title,
+                    priority=Priority(priority),
+                    due_date=(
+                        date.fromisoformat(due_date_value)
+                        if due_date_value is not None
+                        else None
+                    ),
+                    task_id=UUID(task_id),
+                )
+                if bool(completed):
+                    task.complete()
+                tasks.append(task)
+            return tasks
+        except sqlite3.Error as error:
+            raise RepositoryError(
+                "Fehler beim Lesen der Aufgaben aus dem Repository."
+            ) from error
+
+    def get_by_id(self, task_id: UUID) -> Task | None:
+        """Lädt eine Aufgabe anhand ihrer ID aus der SQLite-Datenbank."""
+        try:
+            with sqlite3.connect(self.database_path) as connection:
+                cursor = connection.cursor()
+                cursor.execute(
+                    """
+                    SELECT task_id, title, completed, priority, due_date
+                    FROM tasks
+                    WHERE task_id = ?
+                    """,
+                    (str(task_id),),
+                )
+                row = cursor.fetchone()
+
+            if row is None:
+                return None
+
+            task_id, title, completed, priority, due_date_value = row
             task = Task(
                 title=title,
                 priority=Priority(priority),
@@ -88,99 +128,93 @@ class SqliteTaskRepository:
                     if due_date_value is not None
                     else None
                 ),
-                task_id=UUID(task_id),
+                task_id=UUID(str(task_id)),
             )
             if bool(completed):
                 task.complete()
-            tasks.append(task)
-        return tasks
-
-    def get_by_id(self, task_id: UUID) -> Task | None:
-        """Lädt eine Aufgabe anhand ihrer ID aus der SQLite-Datenbank."""
-        with sqlite3.connect(self.database_path) as connection:
-            cursor = connection.cursor()
-            cursor.execute(
-                """
-                SELECT task_id, title, completed, priority, due_date
-                FROM tasks
-                WHERE task_id = ?
-                """,
-                (str(task_id),),
-            )
-            row = cursor.fetchone()
-
-        if row is None:
-            return None
-
-        task_id, title, completed, priority, due_date_value = row
-        task = Task(
-            title=title,
-            priority=Priority(priority),
-            due_date=(
-                date.fromisoformat(due_date_value)
-                if due_date_value is not None
-                else None
-            ),
-            task_id=UUID(str(task_id)),
-        )
-        if bool(completed):
-            task.complete()
-        return task
+            return task
+        except sqlite3.Error as error:
+            raise RepositoryError(
+                "Fehler beim Lesen der Aufgabe aus dem Repository."
+            ) from error
 
     def add(self, task: Task) -> None:
         """Fügt eine Aufgabe in die SQLite-Datenbank ein."""
-        with sqlite3.connect(self.database_path) as connection:
-            cursor = connection.cursor()
-            cursor.execute(
-                """
-                INSERT INTO tasks (
-                    task_id,
-                    title,
-                    completed,
-                    priority,
-                    due_date
+        try:
+            with sqlite3.connect(self.database_path) as connection:
+                cursor = connection.cursor()
+                cursor.execute(
+                    """
+                    INSERT INTO tasks (
+                        task_id,
+                        title,
+                        completed,
+                        priority,
+                        due_date
+                    )
+                    VALUES (?, ?, ?, ?, ?)
+                    """,
+                    (
+                        str(task.id),
+                        task.title,
+                        int(task.completed),
+                        task.priority.value,
+                        (
+                            task.due_date.isoformat()
+                            if task.due_date is not None
+                            else None
+                        ),
+                    ),
                 )
-                VALUES (?, ?, ?, ?, ?)
-                """,
-                (
-                    str(task.id),
-                    task.title,
-                    int(task.completed),
-                    task.priority.value,
-                    (task.due_date.isoformat() if task.due_date is not None else None),
-                ),
-            )
+        except sqlite3.Error as error:
+            raise RepositoryError(
+                "Fehler beim Hinzufügen der Aufgabe ins Repository."
+            ) from error
 
     def update(self, task: Task) -> None:
         """Aktualisiert eine Aufgabe in der SQLite-Datenbank."""
-        with sqlite3.connect(self.database_path) as connection:
-            cursor = connection.cursor()
-            cursor.execute(
-                """
-                UPDATE tasks
-                SET title = ?,
-                    completed = ?,
-                    priority = ?,
-                    due_date = ?
-                WHERE task_id = ?
-                """,
-                (
-                    task.title,
-                    int(task.completed),
-                    task.priority.value,
-                    (task.due_date.isoformat() if task.due_date is not None else None),
-                    str(task.id),
-                ),
-            )
+        try:
+            with sqlite3.connect(self.database_path) as connection:
+                cursor = connection.cursor()
+                cursor.execute(
+                    """
+                    UPDATE tasks
+                    SET title = ?,
+                        completed = ?,
+                        priority = ?,
+                        due_date = ?
+                    WHERE task_id = ?
+                    """,
+                    (
+                        task.title,
+                        int(task.completed),
+                        task.priority.value,
+                        (
+                            task.due_date.isoformat()
+                            if task.due_date is not None
+                            else None
+                        ),
+                        str(task.id),
+                    ),
+                )
+        except sqlite3.Error as error:
+            raise RepositoryError(
+                "Fehler beim Aktualisieren der Aufgabeim Repository."
+            ) from error
 
     def delete(self, task_id: UUID) -> None:
         """Löscht eine Aufgabe anhand ihrer ID aus der SQLite-Datenbank."""
-        with sqlite3.connect(self.database_path) as connection:
-            cursor = connection.cursor()
-            cursor.execute(
-                """
-                DELETE FROM tasks
-                WHERE task_id = ?
-                """,
-                (str(task_id),),
-            )
+        try:
+            with sqlite3.connect(self.database_path) as connection:
+                cursor = connection.cursor()
+                cursor.execute(
+                    """
+                    DELETE FROM tasks
+                    WHERE task_id = ?
+                    """,
+                    (str(task_id),),
+                )
+        except sqlite3.Error as error:
+            raise RepositoryError(
+                "Fehler beim Löschen der Aufgabe aus dem Repository."
+            ) from error

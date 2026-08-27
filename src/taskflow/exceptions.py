@@ -16,3 +16,7 @@ class DuplicateTaskError(TaskFlowError):
 
 class ConfigurationError(TaskFlowError):
     """Die Anwendungskonfiguration ist ungültig."""
+
+
+class RepositoryError(TaskFlowError):
+    """Fehler beim Zugriff auf ein Task-Repository."""

@@ -1,11 +1,11 @@
 from datetime import date
-from unittest.mock import create_autospec
+from unittest.mock import Mock, create_autospec
 from uuid import UUID
 
 import pytest
 
 from taskflow.cli import add_task, complete_task, remove_task, run_cli, show_tasks
-from taskflow.exceptions import EmptyTitleError, TaskNotFoundError
+from taskflow.exceptions import EmptyTitleError, RepositoryError, TaskNotFoundError
 from taskflow.priority import Priority
 from taskflow.task import Task
 from taskflow.task_service import TaskService
@@ -356,3 +356,29 @@ def test_remove_task_prints_error_when_use_case_raises(monkeypatch, capsys) -> N
     remove_task(get_tasks_use_case, remove_task_use_case)
     captured = capsys.readouterr()
     assert f"Keine Aufgabe mit ID {selected_task.id} gefunden." in captured.out
+
+
+def test_run_cli_handles_repository_error(monkeypatch, capsys):
+    create_task = Mock()
+    complete_task = Mock()
+    remove_task = Mock()
+    get_tasks = Mock()
+
+    get_tasks.execute.side_effect = RepositoryError(
+        "Fehler beim Lesen der Aufgaben aus dem Repository."
+    )
+
+    inputs = iter(["2", "5"])
+
+    monkeypatch.setattr("builtins.input", lambda _: next(inputs))
+    run_cli(
+        create_task,
+        complete_task,
+        remove_task,
+        get_tasks,
+    )
+
+    captured = capsys.readouterr()
+
+    assert "Fehler beim Zugriff auf die Daten" in captured.out
+    get_tasks.execute.assert_called_once_with()
