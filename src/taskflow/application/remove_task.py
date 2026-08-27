@@ -11,7 +11,7 @@ class RemoveTask:
 
     def execute(self, task_id: UUID) -> Task:
         task = self.repository.get_by_id(task_id)
-        if not task:
+        if task is None:
             raise TaskNotFoundError(f"Keine Aufgabe mit ID {task_id} gefunden.")
         self.repository.delete(task_id)
         return task

@@ -5,7 +5,12 @@ from uuid import UUID
 import pytest
 
 from taskflow.cli import add_task, complete_task, remove_task, run_cli, show_tasks
-from taskflow.exceptions import EmptyTitleError, RepositoryError, TaskNotFoundError
+from taskflow.exceptions import (
+    DuplicateTaskError,
+    EmptyTitleError,
+    RepositoryError,
+    TaskNotFoundError,
+)
 from taskflow.priority import Priority
 from taskflow.task import Task
 from taskflow.task_service import TaskService
@@ -382,3 +387,19 @@ def test_run_cli_handles_repository_error(monkeypatch, capsys):
 
     assert "Fehler beim Zugriff auf die Daten" in captured.out
     get_tasks.execute.assert_called_once_with()
+
+
+def test_add_task_prints_error_for_duplicate_title(monkeypatch, capsys):
+    create_task = Mock()
+    create_task.execute.side_effect = DuplicateTaskError()
+
+    monkeypatch.setattr(
+        "builtins.input",
+        lambda _: "Einkaufen",
+    )
+
+    add_task(create_task)
+
+    captured = capsys.readouterr()
+
+    assert "Eine Aufgabe mit diesem Titel existiert bereits." in captured.out
