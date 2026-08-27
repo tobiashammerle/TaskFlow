@@ -1,5 +1,6 @@
 from datetime import date
 
+from taskflow.exceptions import DuplicateTaskError
 from taskflow.priority import Priority
 from taskflow.task import Task
 from taskflow.task_repository import TaskRepository
@@ -15,6 +16,11 @@ class CreateTask:
         priority: Priority = Priority.MEDIUM,
         due_date: date | None = None,
     ) -> Task:
+        tasks = self.repository.get_all()
+        if any(task.title.casefold() == title.casefold() for task in tasks):
+            raise DuplicateTaskError(
+                f'Eine Aufgabe mit dem Titel "{title}" existiert bereits.'
+            )
         task = Task(title=title, priority=priority, due_date=due_date)
         self.repository.add(task)
         return task

@@ -3,7 +3,12 @@ from datetime import date
 from typing import Protocol
 from uuid import UUID
 
-from taskflow.exceptions import EmptyTitleError, RepositoryError, TaskNotFoundError
+from taskflow.exceptions import (
+    DuplicateTaskError,
+    EmptyTitleError,
+    RepositoryError,
+    TaskNotFoundError,
+)
 from taskflow.priority import Priority
 from taskflow.task import Task
 
@@ -79,6 +84,9 @@ def add_task(create_task: CreateTaskHandler) -> None:
         create_task.execute(title=title)
     except EmptyTitleError:
         print("Der Titel darf nicht leer sein.")
+        return
+    except DuplicateTaskError:
+        print("Eine Aufgabe mit diesem Titel existiert bereits.")
         return
     print("Aufgabe wurde hinzugefügt. ")
 
