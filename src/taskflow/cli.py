@@ -1,10 +1,13 @@
+import logging
 from datetime import date
 from typing import Protocol
 from uuid import UUID
 
-from taskflow.exceptions import EmptyTitleError, TaskNotFoundError
+from taskflow.exceptions import EmptyTitleError, RepositoryError, TaskNotFoundError
 from taskflow.priority import Priority
 from taskflow.task import Task
+
+logger = logging.getLogger(__name__)
 
 
 class CreateTaskHandler(Protocol):
@@ -37,19 +40,23 @@ def run_cli(
     while True:
         show_menu()
         choice = input("Auswahl: ").strip()
-        if choice == "1":
-            add_task(create_task)
-        elif choice == "2":
-            show_tasks(get_tasks_use_case)
-        elif choice == "3":
-            complete_task(get_tasks_use_case, complete_task_use_case)
-        elif choice == "4":
-            remove_task(get_tasks_use_case, remove_task_use_case)
-        elif choice == "5":
-            print("TaskFlow wird beendet. ")
-            break
-        else:
-            print("Ungültige Auswahl. ")
+        try:
+            if choice == "1":
+                add_task(create_task)
+            elif choice == "2":
+                show_tasks(get_tasks_use_case)
+            elif choice == "3":
+                complete_task(get_tasks_use_case, complete_task_use_case)
+            elif choice == "4":
+                remove_task(get_tasks_use_case, remove_task_use_case)
+            elif choice == "5":
+                print("TaskFlow wird beendet. ")
+                break
+            else:
+                print("Ungültige Auswahl. ")
+        except RepositoryError as error:
+            logger.exception("Repository-Fehler während der CLI-Ausführung")
+            print(f"Fehler beim Zugriff auf die Daten: {error}")
 
 
 def show_menu() -> None:
@@ -106,7 +113,7 @@ def complete_task(
         print("Bitte gib eine gültige Zahl ein. ")
         return
     try:
-        task_index = int(task_number) - 1
+        task_index = task_number_int - 1
         task = tasks[task_index]
         complete_task_use_case.execute(task.id)
     except TaskNotFoundError as error:

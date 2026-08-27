@@ -1,7 +1,11 @@
+import sqlite3
 from datetime import date
 from pathlib import Path
 from uuid import uuid4
 
+import pytest
+
+from taskflow.exceptions import RepositoryError
 from taskflow.priority import Priority
 from taskflow.sqlite_task_repository import SqliteTaskRepository
 from taskflow.task import Task
@@ -132,3 +136,25 @@ def test_delete_unknown_id_does_not_raise_error(tmp_path: Path) -> None:
     assert loaded_task is not None
     assert loaded_task.id == task.id
     assert loaded_task.title == "Python lernen"
+
+
+def test_delete_translates_sqlite_errors_to_repository_error(monkeypatch):
+    repository = SqliteTaskRepository(Path("tasks.db"))
+
+    def raise_sqlite_error(*args, **kwargs):
+        raise sqlite3.OperationalError("database is locked")
+
+    monkeypatch.setattr(sqlite3, "connect", raise_sqlite_error)
+    with pytest.raises(RepositoryError):
+        repository.delete(uuid4())
+
+
+def test_get_all_translates_sqlite_error_to_repository_error(monkeypatch):
+    repository = SqliteTaskRepository(Path("tasks.db"))
+
+    def raise_sqlite_error(*args, **kwargs):
+        raise sqlite3.OperationalError("database is locked")
+
+    monkeypatch.setattr(sqlite3, "connect", raise_sqlite_error)
+    with pytest.raises(RepositoryError):
+        repository.get_all()
