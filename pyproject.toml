@@ -10,10 +10,12 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "python-dotenv>=1.2.3",
+    "fastapi",
 ]
 
 [project.optional-dependencies]
 dev = [
+    "httpx2",
     "mypy",
     "pre-commit",
     "pytest",
