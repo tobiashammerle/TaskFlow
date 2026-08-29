@@ -1,7 +1,15 @@
+from uuid import uuid4
+
 import pytest
 from fastapi.testclient import TestClient
 
-from taskflow.api import app, get_create_task_use_case, get_get_tasks_use_case
+from taskflow.api import (
+    app,
+    get_complete_task_use_case,
+    get_create_task_use_case,
+    get_get_tasks_use_case,
+)
+from taskflow.application.complete_task import CompleteTask
 from taskflow.application.create_task import CreateTask
 from taskflow.application.get_tasks import GetTasks
 from tests.fakes import FakeTaskRepository
@@ -12,6 +20,7 @@ def client():
     test_repository = FakeTaskRepository()
     test_create_task_use_case = CreateTask(test_repository)
     test_get_tasks_use_case = GetTasks(test_repository)
+    test_complete_task_use_case = CompleteTask(test_repository)
 
     def override_get_create_task_use_case():
         return test_create_task_use_case
@@ -19,10 +28,17 @@ def client():
     def override_get_get_tasks_use_case():
         return test_get_tasks_use_case
 
+    def override_get_complete_task_use_case():
+        return test_complete_task_use_case
+
     app.dependency_overrides[get_create_task_use_case] = (
         override_get_create_task_use_case
     )
     app.dependency_overrides[get_get_tasks_use_case] = override_get_get_tasks_use_case
+
+    app.dependency_overrides[get_complete_task_use_case] = (
+        override_get_complete_task_use_case
+    )
 
     yield TestClient(app)
     app.dependency_overrides.clear()
@@ -125,3 +141,23 @@ def test_get_tasks_returns_created_task(client):
     assert response.status_code == 200
     assert len(response.json()) == 1
     assert response.json()[0]["title"] == "Backend lernen"
+
+
+def test_complete_task_returns_completed_task(client):
+    create_response = client.post(
+        "/tasks",
+        json={
+            "title": "Einkaufen",
+        },
+    )
+    task_id = create_response.json()["id"]
+    response = client.patch(f"/tasks/{task_id}/complete")
+    assert response.status_code == 200
+    assert response.json()["completed"] is True
+
+
+def test_complete_unknown_task_returns_404(client):
+    unknown_task_id = uuid4()
+    response = client.patch(f"/tasks/{unknown_task_id}/complete")
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Task nicht gefunden."

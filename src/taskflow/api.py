@@ -4,13 +4,13 @@ from uuid import UUID
 from fastapi import Depends, FastAPI, HTTPException
 from pydantic import BaseModel
 
-from taskflow.exceptions import DuplicateTaskError, EmptyTitleError
+from taskflow.exceptions import DuplicateTaskError, EmptyTitleError, TaskNotFoundError
 from taskflow.main import build_use_cases
 from taskflow.priority import Priority
 
 app = FastAPI()
 
-create_task_use_case, _, _, get_tasks_use_case = build_use_cases()
+create_task_use_case, complete_task_use_case, _, get_tasks_use_case = build_use_cases()
 
 
 def get_create_task_use_case():
@@ -19,6 +19,10 @@ def get_create_task_use_case():
 
 def get_get_tasks_use_case():
     return get_tasks_use_case
+
+
+def get_complete_task_use_case():
+    return complete_task_use_case
 
 
 class CreateTaskRequest(BaseModel):
@@ -61,3 +65,12 @@ def root():
 def get_tasks(use_case=Depends(get_get_tasks_use_case)):
     tasks = use_case.execute()
     return tasks
+
+
+@app.patch("/tasks/{task_id}/complete", response_model=TaskResponse)
+def complete_task(task_id: UUID, use_case=Depends(get_complete_task_use_case)):
+    try:
+        task = use_case.execute(task_id)
+    except TaskNotFoundError:
+        raise HTTPException(status_code=404, detail="Task nicht gefunden.")
+    return task
