@@ -8,10 +8,12 @@ from taskflow.api import (
     get_complete_task_use_case,
     get_create_task_use_case,
     get_get_tasks_use_case,
+    get_remove_task_use_case,
 )
 from taskflow.application.complete_task import CompleteTask
 from taskflow.application.create_task import CreateTask
 from taskflow.application.get_tasks import GetTasks
+from taskflow.application.remove_task import RemoveTask
 from tests.fakes import FakeTaskRepository
 
 
@@ -21,6 +23,7 @@ def client():
     test_create_task_use_case = CreateTask(test_repository)
     test_get_tasks_use_case = GetTasks(test_repository)
     test_complete_task_use_case = CompleteTask(test_repository)
+    test_remove_task_use_case = RemoveTask(test_repository)
 
     def override_get_create_task_use_case():
         return test_create_task_use_case
@@ -31,6 +34,9 @@ def client():
     def override_get_complete_task_use_case():
         return test_complete_task_use_case
 
+    def override_get_remove_task_use_case():
+        return test_remove_task_use_case
+
     app.dependency_overrides[get_create_task_use_case] = (
         override_get_create_task_use_case
     )
@@ -38,6 +44,10 @@ def client():
 
     app.dependency_overrides[get_complete_task_use_case] = (
         override_get_complete_task_use_case
+    )
+
+    app.dependency_overrides[get_remove_task_use_case] = (
+        override_get_remove_task_use_case
     )
 
     yield TestClient(app)
@@ -159,5 +169,23 @@ def test_complete_task_returns_completed_task(client):
 def test_complete_unknown_task_returns_404(client):
     unknown_task_id = uuid4()
     response = client.patch(f"/tasks/{unknown_task_id}/complete")
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Task nicht gefunden."
+
+
+def test_delete_task_returns_204(client):
+    create_response = client.post(
+        "/tasks",
+        json={"title": "Einkaufen"},
+    )
+    task_id = create_response.json()["id"]
+    response = client.delete(f"/tasks/{task_id}")
+    assert response.status_code == 204
+    assert response.content == b""
+
+
+def test_delete_unknown_task_returns_404(client):
+    unknown_task_id = uuid4()
+    response = client.delete(f"/tasks/{unknown_task_id}")
     assert response.status_code == 404
     assert response.json()["detail"] == "Task nicht gefunden."
