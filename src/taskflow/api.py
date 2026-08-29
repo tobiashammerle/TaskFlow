@@ -10,11 +10,20 @@ from taskflow.priority import Priority
 
 app = FastAPI()
 
-create_task_use_case, complete_task_use_case, _, get_tasks_use_case = build_use_cases()
+(
+    create_task_use_case,
+    complete_task_use_case,
+    remove_task_use_case,
+    get_tasks_use_case,
+) = build_use_cases()
 
 
 def get_create_task_use_case():
     return create_task_use_case
+
+
+def get_remove_task_use_case():
+    return remove_task_use_case
 
 
 def get_get_tasks_use_case():
@@ -74,3 +83,11 @@ def complete_task(task_id: UUID, use_case=Depends(get_complete_task_use_case)):
     except TaskNotFoundError:
         raise HTTPException(status_code=404, detail="Task nicht gefunden.")
     return task
+
+
+@app.delete("/tasks/{task_id}", status_code=204)
+def delete_task(task_id: UUID, use_case=Depends(get_remove_task_use_case)):
+    try:
+        use_case.execute(task_id)
+    except TaskNotFoundError:
+        raise HTTPException(status_code=404, detail="Task nicht gefunden.")
