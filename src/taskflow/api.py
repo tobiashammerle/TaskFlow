@@ -5,6 +5,7 @@ from fastapi import Depends, FastAPI, HTTPException
 from pydantic import BaseModel
 
 from taskflow.exceptions import DuplicateTaskError, EmptyTitleError, TaskNotFoundError
+from taskflow.filter_type import FilterType
 from taskflow.main import build_use_cases
 from taskflow.priority import Priority
 
@@ -16,6 +17,7 @@ app = FastAPI()
     remove_task_use_case,
     get_tasks_use_case,
     search_tasks_use_case,
+    filter_tasks_use_case,
 ) = build_use_cases()
 
 
@@ -37,6 +39,10 @@ def get_complete_task_use_case():
 
 def get_search_tasks_use_case():
     return search_tasks_use_case
+
+
+def get_filter_tasks_use_case():
+    return filter_tasks_use_case
 
 
 class CreateTaskRequest(BaseModel):
@@ -78,13 +84,17 @@ def root():
 @app.get("/tasks", response_model=list[TaskResponse])
 def get_tasks(
     search: str | None = None,
+    filter: FilterType | None = None,
     get_tasks_use_case=Depends(get_get_tasks_use_case),
     search_tasks_use_case=Depends(get_search_tasks_use_case),
+    filter_tasks_use_case=Depends(get_filter_tasks_use_case),
 ):
+    tasks = get_tasks_use_case.execute()
     if search is not None:
-        tasks = get_tasks_use_case.execute()
-        return search_tasks_use_case.execute(tasks, search)
-    return get_tasks_use_case.execute()
+        tasks = search_tasks_use_case.execute(tasks, search)
+    if filter is not None:
+        tasks = filter_tasks_use_case.execute(tasks, filter)
+    return tasks
 
 
 @app.patch("/tasks/{task_id}/complete", response_model=TaskResponse)
