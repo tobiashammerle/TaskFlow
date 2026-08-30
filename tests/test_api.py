@@ -9,11 +9,13 @@ from taskflow.api import (
     get_create_task_use_case,
     get_get_tasks_use_case,
     get_remove_task_use_case,
+    get_search_tasks_use_case,
 )
 from taskflow.application.complete_task import CompleteTask
 from taskflow.application.create_task import CreateTask
 from taskflow.application.get_tasks import GetTasks
 from taskflow.application.remove_task import RemoveTask
+from taskflow.application.search_tasks import SearchTasks
 from tests.fakes import FakeTaskRepository
 
 
@@ -24,6 +26,7 @@ def client():
     test_get_tasks_use_case = GetTasks(test_repository)
     test_complete_task_use_case = CompleteTask(test_repository)
     test_remove_task_use_case = RemoveTask(test_repository)
+    test_search_tasks_use_case = SearchTasks()
 
     def override_get_create_task_use_case():
         return test_create_task_use_case
@@ -37,6 +40,9 @@ def client():
     def override_get_remove_task_use_case():
         return test_remove_task_use_case
 
+    def override_get_search_tasks_use_case():
+        return test_search_tasks_use_case
+
     app.dependency_overrides[get_create_task_use_case] = (
         override_get_create_task_use_case
     )
@@ -48,6 +54,10 @@ def client():
 
     app.dependency_overrides[get_remove_task_use_case] = (
         override_get_remove_task_use_case
+    )
+
+    app.dependency_overrides[get_search_tasks_use_case] = (
+        override_get_search_tasks_use_case
     )
 
     yield TestClient(app)
@@ -189,3 +199,35 @@ def test_delete_unknown_task_returns_404(client):
     response = client.delete(f"/tasks/{unknown_task_id}")
     assert response.status_code == 404
     assert response.json()["detail"] == "Task nicht gefunden."
+
+
+def test_search_tasks_returns_matching_tasks(client):
+    client.post(
+        "/tasks",
+        json={
+            "title": "Einkaufen",
+        },
+    )
+    client.post(
+        "/tasks",
+        json={
+            "title": "Python lernen",
+        },
+    )
+    response = client.get("/tasks?search=einkaufen")
+    assert response.status_code == 200
+    data = response.json()
+    assert len(data) == 1
+    assert data[0]["title"] == "Einkaufen"
+
+
+def test_search_tasks_returns_empty_list_when_no_match(client):
+    client.post(
+        "/tasks",
+        json={
+            "title": "Einkaufen",
+        },
+    )
+    response = client.get("/tasks?search=xyz")
+    assert response.status_code == 200
+    assert response.json() == []
