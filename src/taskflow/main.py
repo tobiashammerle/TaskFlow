@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 
 from taskflow.application.complete_task import CompleteTask
 from taskflow.application.create_task import CreateTask
+from taskflow.application.filter_tasks import FilterTasks
 from taskflow.application.get_tasks import GetTasks
 from taskflow.application.remove_task import RemoveTask
 from taskflow.application.search_tasks import SearchTasks
@@ -24,7 +25,15 @@ def build_use_cases():
     remove_task = RemoveTask(repository)
     get_tasks = GetTasks(repository)
     search_tasks = SearchTasks()
-    return create_task, complete_task, remove_task, get_tasks, search_tasks
+    filter_tasks = FilterTasks()
+    return (
+        create_task,
+        complete_task,
+        remove_task,
+        get_tasks,
+        search_tasks,
+        filter_tasks,
+    )
 
 
 def main() -> None:
@@ -39,6 +48,7 @@ def main() -> None:
         remove_task,
         get_tasks,
         search_tasks,
+        filter_tasks,
     ) = build_use_cases()
 
     run_cli(create_task, complete_task, remove_task, get_tasks)

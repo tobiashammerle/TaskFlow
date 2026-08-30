@@ -7,12 +7,14 @@ from taskflow.api import (
     app,
     get_complete_task_use_case,
     get_create_task_use_case,
+    get_filter_tasks_use_case,
     get_get_tasks_use_case,
     get_remove_task_use_case,
     get_search_tasks_use_case,
 )
 from taskflow.application.complete_task import CompleteTask
 from taskflow.application.create_task import CreateTask
+from taskflow.application.filter_tasks import FilterTasks
 from taskflow.application.get_tasks import GetTasks
 from taskflow.application.remove_task import RemoveTask
 from taskflow.application.search_tasks import SearchTasks
@@ -27,6 +29,7 @@ def client():
     test_complete_task_use_case = CompleteTask(test_repository)
     test_remove_task_use_case = RemoveTask(test_repository)
     test_search_tasks_use_case = SearchTasks()
+    test_filter_tasks_use_case = FilterTasks()
 
     def override_get_create_task_use_case():
         return test_create_task_use_case
@@ -43,6 +46,9 @@ def client():
     def override_get_search_tasks_use_case():
         return test_search_tasks_use_case
 
+    def override_get_filter_tasks_use_case():
+        return test_filter_tasks_use_case
+
     app.dependency_overrides[get_create_task_use_case] = (
         override_get_create_task_use_case
     )
@@ -58,6 +64,10 @@ def client():
 
     app.dependency_overrides[get_search_tasks_use_case] = (
         override_get_search_tasks_use_case
+    )
+
+    app.dependency_overrides[get_filter_tasks_use_case] = (
+        override_get_filter_tasks_use_case
     )
 
     yield TestClient(app)
@@ -231,3 +241,70 @@ def test_search_tasks_returns_empty_list_when_no_match(client):
     response = client.get("/tasks?search=xyz")
     assert response.status_code == 200
     assert response.json() == []
+
+
+def test_filter_tasks_returns_completed_tasks(client):
+    first_response = client.post(
+        "/tasks",
+        json={
+            "title": "Einkaufen",
+        },
+    )
+    client.post("/tasks", json={"title": "Python lernen"})
+    first_task_id = first_response.json()["id"]
+    client.patch(f"/tasks/{first_task_id}/complete")
+    response = client.get("/tasks?filter=completed")
+    assert response.status_code == 200
+    data = response.json()
+    assert len(data) == 1
+    assert data[0]["title"] == "Einkaufen"
+    assert data[0]["completed"] is True
+
+
+def test_search_and_filter_returns_only_matching_completed_tasks(client):
+    first_response = client.post("/tasks", json={"title": "Python lernen"})
+    client.post(
+        "/tasks",
+        json={
+            "title": "Python testen",
+        },
+    )
+    third_response = client.post(
+        "/tasks",
+        json={
+            "title": "Einkaufen",
+        },
+    )
+    first_task_id = first_response.json()["id"]
+    client.patch(f"/tasks/{first_task_id}/complete")
+    third_task_id = third_response.json()["id"]
+    client.patch(f"/tasks/{third_task_id}/complete")
+    response = client.get("/tasks?search=Python&filter=completed")
+    assert response.status_code == 200
+    data = response.json()
+    assert len(data) == 1
+    assert data[0]["title"] == "Python lernen"
+    assert data[0]["completed"] is True
+
+
+def test_filter_tasks_returns_422_for_invalid_filter(client):
+    response = client.get("/tasks?filter=banana")
+    assert response.status_code == 422
+
+
+def test_filter_tasks_returns_open_tasks(client):
+    first_response = client.post(
+        "/tasks",
+        json={
+            "title": "Einkaufen",
+        },
+    )
+    client.post("/tasks", json={"title": "Python lernen"})
+    first_task_id = first_response.json()["id"]
+    client.patch(f"/tasks/{first_task_id}/complete")
+    response = client.get("/tasks?filter=open")
+    assert response.status_code == 200
+    data = response.json()
+    assert len(data) == 1
+    assert data[0]["title"] == "Python lernen"
+    assert data[0]["completed"] is False
