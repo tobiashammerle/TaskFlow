@@ -7,6 +7,7 @@ from taskflow.application.complete_task import CompleteTask
 from taskflow.application.create_task import CreateTask
 from taskflow.application.get_tasks import GetTasks
 from taskflow.application.remove_task import RemoveTask
+from taskflow.application.search_tasks import SearchTasks
 from taskflow.cli import run_cli
 from taskflow.config import load_repository_type
 from taskflow.logging_config import configure_logging
@@ -22,7 +23,8 @@ def build_use_cases():
     complete_task = CompleteTask(repository)
     remove_task = RemoveTask(repository)
     get_tasks = GetTasks(repository)
-    return create_task, complete_task, remove_task, get_tasks
+    search_tasks = SearchTasks()
+    return create_task, complete_task, remove_task, get_tasks, search_tasks
 
 
 def main() -> None:
@@ -31,7 +33,13 @@ def main() -> None:
     configure_logging()
     logger.info("TaskFlow gestartet")
 
-    create_task, complete_task, remove_task, get_tasks = build_use_cases()
+    (
+        create_task,
+        complete_task,
+        remove_task,
+        get_tasks,
+        search_tasks,
+    ) = build_use_cases()
 
     run_cli(create_task, complete_task, remove_task, get_tasks)
     logger.info("TaskFlow beendet")

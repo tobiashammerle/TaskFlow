@@ -15,6 +15,7 @@ app = FastAPI()
     complete_task_use_case,
     remove_task_use_case,
     get_tasks_use_case,
+    search_tasks_use_case,
 ) = build_use_cases()
 
 
@@ -32,6 +33,10 @@ def get_get_tasks_use_case():
 
 def get_complete_task_use_case():
     return complete_task_use_case
+
+
+def get_search_tasks_use_case():
+    return search_tasks_use_case
 
 
 class CreateTaskRequest(BaseModel):
@@ -71,9 +76,15 @@ def root():
 
 
 @app.get("/tasks", response_model=list[TaskResponse])
-def get_tasks(use_case=Depends(get_get_tasks_use_case)):
-    tasks = use_case.execute()
-    return tasks
+def get_tasks(
+    search: str | None = None,
+    get_tasks_use_case=Depends(get_get_tasks_use_case),
+    search_tasks_use_case=Depends(get_search_tasks_use_case),
+):
+    if search is not None:
+        tasks = get_tasks_use_case.execute()
+        return search_tasks_use_case.execute(tasks, search)
+    return get_tasks_use_case.execute()
 
 
 @app.patch("/tasks/{task_id}/complete", response_model=TaskResponse)
