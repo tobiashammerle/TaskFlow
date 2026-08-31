@@ -8,6 +8,7 @@ from taskflow.exceptions import DuplicateTaskError, EmptyTitleError, TaskNotFoun
 from taskflow.filter_type import FilterType
 from taskflow.main import build_use_cases
 from taskflow.priority import Priority
+from taskflow.sort_field import SortField
 
 app = FastAPI()
 
@@ -18,6 +19,7 @@ app = FastAPI()
     get_tasks_use_case,
     search_tasks_use_case,
     filter_tasks_use_case,
+    sort_tasks_use_case,
 ) = build_use_cases()
 
 
@@ -43,6 +45,10 @@ def get_search_tasks_use_case():
 
 def get_filter_tasks_use_case():
     return filter_tasks_use_case
+
+
+def get_sort_tasks_use_case():
+    return sort_tasks_use_case
 
 
 class CreateTaskRequest(BaseModel):
@@ -85,15 +91,22 @@ def root():
 def get_tasks(
     search: str | None = None,
     filter: FilterType | None = None,
+    sort: SortField | None = None,
+    reverse: bool = False,
     get_tasks_use_case=Depends(get_get_tasks_use_case),
     search_tasks_use_case=Depends(get_search_tasks_use_case),
     filter_tasks_use_case=Depends(get_filter_tasks_use_case),
+    sort_tasks_use_case=Depends(get_sort_tasks_use_case),
 ):
+    if reverse and sort is None:
+        raise HTTPException(status_code=400, detail="reverse requires sort")
     tasks = get_tasks_use_case.execute()
     if search is not None:
         tasks = search_tasks_use_case.execute(tasks, search)
     if filter is not None:
         tasks = filter_tasks_use_case.execute(tasks, filter)
+    if sort is not None:
+        tasks = sort_tasks_use_case.execute(tasks, sort, reverse)
     return tasks
 
 
