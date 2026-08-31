@@ -352,3 +352,42 @@ def test_invalid_reverse_returns_422(client):
 def test_invalid_sort_returns_422(client):
     response = client.get("/tasks?sort=banana")
     assert response.status_code == 422
+
+
+def test_search_filter_and_sort_tasks(client):
+    first_response = client.post(
+        "/tasks",
+        json={
+            "title": "Python lernen",
+        },
+    )
+    client.post(
+        "/tasks",
+        json={  #
+            "title": "Python testen"
+        },
+    )
+    third_response = client.post(
+        "/tasks",
+        json={
+            "title": "Einkaufen",
+        },
+    )
+    fourth_response = client.post(
+        "/tasks",
+        json={
+            "title": "Python API bauen",
+        },
+    )
+    first_task_id = first_response.json()["id"]
+    third_task_id = third_response.json()["id"]
+    fourth_task_id = fourth_response.json()["id"]
+    client.patch(f"/tasks/{first_task_id}/complete")
+    client.patch(f"/tasks/{third_task_id}/complete")
+    client.patch(f"/tasks/{fourth_task_id}/complete")
+    response = client.get("/tasks?search=python&filter=completed&sort=title")
+    assert response.status_code == 200
+    data = response.json()
+    assert len(data) == 2
+    assert data[0]["title"] == "Python API bauen"
+    assert data[1]["title"] == "Python lernen"
