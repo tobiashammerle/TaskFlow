@@ -18,6 +18,7 @@ from taskflow.application.filter_tasks import FilterTasks
 from taskflow.application.get_tasks import GetTasks
 from taskflow.application.remove_task import RemoveTask
 from taskflow.application.search_tasks import SearchTasks
+from taskflow.application.sort_tasks import SortTasks
 from tests.fakes import FakeTaskRepository
 
 
@@ -30,6 +31,7 @@ def client():
     test_remove_task_use_case = RemoveTask(test_repository)
     test_search_tasks_use_case = SearchTasks()
     test_filter_tasks_use_case = FilterTasks()
+    test_sort_tasks_use_case = SortTasks()
 
     def override_get_create_task_use_case():
         return test_create_task_use_case
@@ -48,6 +50,9 @@ def client():
 
     def override_get_filter_tasks_use_case():
         return test_filter_tasks_use_case
+
+    def override_get_sort_tasks_use_case():
+        return test_sort_tasks_use_case
 
     app.dependency_overrides[get_create_task_use_case] = (
         override_get_create_task_use_case
@@ -68,6 +73,10 @@ def client():
 
     app.dependency_overrides[get_filter_tasks_use_case] = (
         override_get_filter_tasks_use_case
+    )
+
+    app.dependency_overrides[override_get_sort_tasks_use_case] = (
+        override_get_sort_tasks_use_case
     )
 
     yield TestClient(app)
@@ -308,3 +317,38 @@ def test_filter_tasks_returns_open_tasks(client):
     assert len(data) == 1
     assert data[0]["title"] == "Python lernen"
     assert data[0]["completed"] is False
+
+
+def test_sort_tasks_by_title(client):
+    client.post("/tasks", json={"title": "Python lernen"})
+    client.post("/tasks", json={"title": "Einkaufen"})
+    response = client.get("/tasks?sort=title")
+    assert response.status_code == 200
+    data = response.json()
+    assert data[0]["title"] == "Einkaufen"
+    assert data[1]["title"] == "Python lernen"
+
+
+def test_sort_tasks_by_title_descending(client):
+    client.post("/tasks", json={"title": "Einkaufen"})
+    client.post("/tasks", json={"title": "Python lernen"})
+    response = client.get("/tasks?sort=title&reverse=true")
+    assert response.status_code == 200
+    data = response.json()
+    assert data[0]["title"] == "Python lernen"
+    assert data[1]["title"] == "Einkaufen"
+
+
+def test_reverse_without_sort_returns_400(client):
+    response = client.get("/tasks?reverse=true")
+    assert response.status_code == 400
+
+
+def test_invalid_reverse_returns_422(client):
+    response = client.get("/tasks?sort=title&reverse=banana")
+    assert response.status_code == 422
+
+
+def test_invalid_sort_returns_422(client):
+    response = client.get("/tasks?sort=banana")
+    assert response.status_code == 422
