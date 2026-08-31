@@ -391,3 +391,194 @@ def test_search_filter_and_sort_tasks(client):
     assert len(data) == 2
     assert data[0]["title"] == "Python API bauen"
     assert data[1]["title"] == "Python lernen"
+
+
+def test_limit_tasks(client):
+    client.post(
+        "/tasks",
+        json={
+            "title": "Python lernen",
+        },
+    )
+    client.post(
+        "/tasks",
+        json={
+            "title": "Einkaufen",
+        },
+    )
+    client.post(
+        "/tasks",
+        json={
+            "title": "API testen",
+        },
+    )
+    response = client.get("/tasks?limit=2")
+    assert response.status_code == 200
+    data = response.json()
+    assert len(data) == 2
+
+
+def test_offset_tasks_skips_requested_amount(client):
+    client.post(
+        "/tasks",
+        json={
+            "title": "Python lernen",
+        },
+    )
+    client.post(
+        "/tasks",
+        json={
+            "title": "Einkaufen",
+        },
+    )
+    client.post(
+        "/tasks",
+        json={
+            "title": "API testen",
+        },
+    )
+    response = client.get("/tasks?offset=1")
+    assert response.status_code == 200
+    data = response.json()
+    assert len(data) == 2
+    assert data[0]["title"] == "Einkaufen"
+    assert data[1]["title"] == "API testen"
+
+
+def test_limit_and_offset_return_correct_tasks(client):
+    client.post(
+        "/tasks",
+        json={
+            "title": "A",
+        },
+    )
+    client.post(
+        "/tasks",
+        json={
+            "title": "B",
+        },
+    )
+    client.post(
+        "/tasks",
+        json={
+            "title": "C",
+        },
+    )
+    client.post(
+        "/tasks",
+        json={
+            "title": "D",
+        },
+    )
+    response = client.get("/tasks?limit=2&offset=1")
+    assert response.status_code == 200
+    data = response.json()
+    assert len(data) == 2
+    assert data[0]["title"] == "B"
+    assert data[1]["title"] == "C"
+
+
+def test_negative_limit_returns_422(client):
+    response = client.get("/tasks?limit=-2")
+    assert response.status_code == 422
+
+
+def test_negative_offset_returns_422(client):
+    response = client.get("/tasks?offset=-1")
+    assert response.status_code == 422
+
+
+def test_limit_zero_returns_empty_list(client):
+    response = client.get("/tasks?limit=0")
+    assert response.status_code == 200
+    assert response.json() == []
+
+
+def test_offset_beyond_tasks_returns_empty_list(client):
+    client.post(
+        "/tasks",
+        json={
+            "title": "A",
+        },
+    )
+    client.post(
+        "/tasks",
+        json={
+            "title": "B",
+        },
+    )
+    response = client.get("/tasks?offset=10")
+    assert response.status_code == 200
+    assert response.json() == []
+
+
+def test_sort_offset_and_limit_return_correct_tasks(client):
+    client.post(
+        "/tasks",
+        json={
+            "title": "D",
+        },
+    )
+    client.post(
+        "/tasks",
+        json={
+            "title": "B",
+        },
+    )
+    client.post(
+        "/tasks",
+        json={
+            "title": "A",
+        },
+    )
+    client.post(
+        "/tasks",
+        json={
+            "title": "C",
+        },
+    )
+    response = client.get("/tasks?sort=title&offset=1&limit=2")
+    assert response.status_code == 200
+    data = response.json()
+    assert len(data) == 2
+    assert data[0]["title"] == "B"
+    assert data[1]["title"] == "C"
+
+
+def test_limit_larger_than_remaining_tasks_returns_remaining_tasks(client):
+    client.post(
+        "/tasks",
+        json={
+            "title": "A",
+        },
+    )
+    client.post(
+        "/tasks",
+        json={
+            "title": "B",
+        },
+    )
+    client.post(
+        "/tasks",
+        json={
+            "title": "C",
+        },
+    )
+    client.post(
+        "/tasks",
+        json={
+            "title": "D",
+        },
+    )
+    client.post(
+        "/tasks",
+        json={
+            "title": "E",
+        },
+    )
+    response = client.get("/tasks?offset=3&limit=10")
+    assert response.status_code == 200
+    data = response.json()
+    assert len(data) == 2
+    assert data[0]["title"] == "D"
+    assert data[1]["title"] == "E"
