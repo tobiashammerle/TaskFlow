@@ -1,7 +1,7 @@
 from datetime import date
 from uuid import UUID
 
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Query
 from pydantic import BaseModel
 
 from taskflow.exceptions import DuplicateTaskError, EmptyTitleError, TaskNotFoundError
@@ -93,6 +93,8 @@ def get_tasks(
     filter: FilterType | None = None,
     sort: SortField | None = None,
     reverse: bool = False,
+    limit: int | None = Query(default=None, ge=0),
+    offset: int | None = Query(default=None, ge=0),
     get_tasks_use_case=Depends(get_get_tasks_use_case),
     search_tasks_use_case=Depends(get_search_tasks_use_case),
     filter_tasks_use_case=Depends(get_filter_tasks_use_case),
@@ -107,6 +109,10 @@ def get_tasks(
         tasks = filter_tasks_use_case.execute(tasks, filter)
     if sort is not None:
         tasks = sort_tasks_use_case.execute(tasks, sort, reverse)
+    if offset is not None:
+        tasks = tasks[offset:]
+    if limit is not None:
+        tasks = tasks[:limit]
     return tasks
 
 
