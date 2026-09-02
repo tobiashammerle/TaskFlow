@@ -18,9 +18,7 @@ class CreateTask:
     ) -> Task:
         tasks = self.repository.get_all()
         if any(task.title.casefold() == title.casefold() for task in tasks):
-            raise DuplicateTaskError(
-                f'Eine Aufgabe mit dem Titel "{title}" existiert bereits.'
-            )
+            raise DuplicateTaskError("Eine Aufgabe mit diesem Titel existiert bereits.")
         task = Task(title=title, priority=priority, due_date=due_date)
         self.repository.add(task)
         return task
