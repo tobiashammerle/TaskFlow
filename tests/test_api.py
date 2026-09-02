@@ -3,15 +3,7 @@ from uuid import uuid4
 import pytest
 from fastapi.testclient import TestClient
 
-from taskflow.api import (
-    app,
-    get_complete_task_use_case,
-    get_create_task_use_case,
-    get_filter_tasks_use_case,
-    get_get_tasks_use_case,
-    get_remove_task_use_case,
-    get_search_tasks_use_case,
-)
+from taskflow.api import app
 from taskflow.application.complete_task import CompleteTask
 from taskflow.application.create_task import CreateTask
 from taskflow.application.filter_tasks import FilterTasks
@@ -19,6 +11,14 @@ from taskflow.application.get_tasks import GetTasks
 from taskflow.application.remove_task import RemoveTask
 from taskflow.application.search_tasks import SearchTasks
 from taskflow.application.sort_tasks import SortTasks
+from taskflow.routers.dependencies import (
+    get_complete_task_use_case,
+    get_create_task_use_case,
+    get_filter_tasks_use_case,
+    get_get_tasks_use_case,
+    get_remove_task_use_case,
+    get_search_tasks_use_case,
+)
 from tests.fakes import FakeTaskRepository
 
 
