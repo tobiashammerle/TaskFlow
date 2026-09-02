@@ -12,7 +12,7 @@ class CompleteTask:
     def execute(self, task_id: UUID) -> Task:
         task = self.repository.get_by_id(task_id)
         if task is None:
-            raise TaskNotFoundError("Task not found")
+            raise TaskNotFoundError("Task nicht gefunden.")
         task.complete()
         self.repository.update(task)
         return task

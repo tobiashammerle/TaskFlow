@@ -2,7 +2,6 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
-from taskflow.exceptions import DuplicateTaskError, EmptyTitleError, TaskNotFoundError
 from taskflow.filter_type import FilterType
 from taskflow.routers.dependencies import (
     get_complete_task_use_case,
@@ -21,35 +20,22 @@ router = APIRouter(prefix="/tasks")
 
 @router.post("", response_model=TaskResponse, status_code=201)
 def create_task(request: CreateTaskRequest, use_case=Depends(get_create_task_use_case)):
-    try:
-        task = use_case.execute(
-            title=request.title,
-            priority=request.priority,
-            due_date=request.due_date,
-        )
-    except DuplicateTaskError:
-        raise HTTPException(
-            status_code=409, detail="Eine Aufgabe mit diesem Titel existiert bereits."
-        )
-    except EmptyTitleError:
-        raise HTTPException(status_code=400, detail="Der Titel darf nicht leer sein.")
+    task = use_case.execute(
+        title=request.title,
+        priority=request.priority,
+        due_date=request.due_date,
+    )
     return task
 
 
 @router.delete("/{task_id}", status_code=204)
 def delete_task(task_id: UUID, use_case=Depends(get_remove_task_use_case)):
-    try:
-        use_case.execute(task_id)
-    except TaskNotFoundError:
-        raise HTTPException(status_code=404, detail="Task nicht gefunden.")
+    use_case.execute(task_id)
 
 
 @router.patch("/{task_id}/complete", response_model=TaskResponse)
 def complete_task(task_id: UUID, use_case=Depends(get_complete_task_use_case)):
-    try:
-        task = use_case.execute(task_id)
-    except TaskNotFoundError:
-        raise HTTPException(status_code=404, detail="Task nicht gefunden.")
+    task = use_case.execute(task_id)
     return task
 
 
