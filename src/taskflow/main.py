@@ -15,33 +15,18 @@ from taskflow.repository_factory import create_repository
 logger = logging.getLogger(__name__)
 
 
-def build_use_cases():
-    repository_type = load_repository_type(Path("settings.ini"))
-    repository = create_repository(repository_type)
-    create_task = CreateTask(repository)
-    complete_task = CompleteTask(repository)
-    remove_task = RemoveTask(repository)
-    get_tasks = GetTasks(repository)
-    return (
-        create_task,
-        complete_task,
-        remove_task,
-        get_tasks,
-    )
-
-
 def main() -> None:
     """Startet die TaskFlow-Anwendung."""
     load_dotenv()
     configure_logging()
     logger.info("TaskFlow gestartet")
 
-    (
-        create_task,
-        complete_task,
-        remove_task,
-        get_tasks,
-    ) = build_use_cases()
+    repository_type = load_repository_type(Path("settings.ini"))
+    repository = create_repository(repository_type)
+    create_task = CreateTask(repository)
+    complete_task = CompleteTask(repository)
+    remove_task = RemoveTask(repository)
+    get_tasks = GetTasks(repository)
 
     run_cli(create_task, complete_task, remove_task, get_tasks)
     logger.info("TaskFlow beendet")
