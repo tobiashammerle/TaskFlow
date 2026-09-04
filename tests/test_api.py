@@ -4,20 +4,8 @@ import pytest
 from fastapi.testclient import TestClient
 
 from taskflow.api import app
-from taskflow.application.complete_task import CompleteTask
-from taskflow.application.create_task import CreateTask
-from taskflow.application.filter_tasks import FilterTasks
-from taskflow.application.get_tasks import GetTasks
-from taskflow.application.remove_task import RemoveTask
-from taskflow.application.search_tasks import SearchTasks
-from taskflow.application.sort_tasks import SortTasks
 from taskflow.routers.dependencies import (
-    get_complete_task_use_case,
-    get_create_task_use_case,
-    get_filter_tasks_use_case,
-    get_get_tasks_use_case,
-    get_remove_task_use_case,
-    get_search_tasks_use_case,
+    get_repository,
 )
 from tests.fakes import FakeTaskRepository
 
@@ -27,59 +15,11 @@ V1_TASKS_URL = "/api/v1/tasks"
 @pytest.fixture
 def client():
     test_repository = FakeTaskRepository()
-    test_create_task_use_case = CreateTask(test_repository)
-    test_get_tasks_use_case = GetTasks(test_repository)
-    test_complete_task_use_case = CompleteTask(test_repository)
-    test_remove_task_use_case = RemoveTask(test_repository)
-    test_search_tasks_use_case = SearchTasks()
-    test_filter_tasks_use_case = FilterTasks()
-    test_sort_tasks_use_case = SortTasks()
 
-    def override_get_create_task_use_case():
-        return test_create_task_use_case
+    def override_get_repository():
+        return test_repository
 
-    def override_get_get_tasks_use_case():
-        return test_get_tasks_use_case
-
-    def override_get_complete_task_use_case():
-        return test_complete_task_use_case
-
-    def override_get_remove_task_use_case():
-        return test_remove_task_use_case
-
-    def override_get_search_tasks_use_case():
-        return test_search_tasks_use_case
-
-    def override_get_filter_tasks_use_case():
-        return test_filter_tasks_use_case
-
-    def override_get_sort_tasks_use_case():
-        return test_sort_tasks_use_case
-
-    app.dependency_overrides[get_create_task_use_case] = (
-        override_get_create_task_use_case
-    )
-    app.dependency_overrides[get_get_tasks_use_case] = override_get_get_tasks_use_case
-
-    app.dependency_overrides[get_complete_task_use_case] = (
-        override_get_complete_task_use_case
-    )
-
-    app.dependency_overrides[get_remove_task_use_case] = (
-        override_get_remove_task_use_case
-    )
-
-    app.dependency_overrides[get_search_tasks_use_case] = (
-        override_get_search_tasks_use_case
-    )
-
-    app.dependency_overrides[get_filter_tasks_use_case] = (
-        override_get_filter_tasks_use_case
-    )
-
-    app.dependency_overrides[override_get_sort_tasks_use_case] = (
-        override_get_sort_tasks_use_case
-    )
+    app.dependency_overrides[get_repository] = override_get_repository
 
     yield TestClient(app)
     app.dependency_overrides.clear()
