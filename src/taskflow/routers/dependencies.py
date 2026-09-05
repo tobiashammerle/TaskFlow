@@ -20,29 +20,37 @@ def get_repository() -> TaskRepository:
     return repository
 
 
-def get_create_task_use_case(repository: TaskRepository = Depends(get_repository)):
+def get_create_task_use_case(
+    repository: TaskRepository = Depends(get_repository),
+) -> CreateTask:
     return CreateTask(repository)
 
 
-def get_remove_task_use_case(repository: TaskRepository = Depends(get_repository)):
+def get_remove_task_use_case(
+    repository: TaskRepository = Depends(get_repository),
+) -> RemoveTask:
     return RemoveTask(repository)
 
 
-def get_get_tasks_use_case(repository: TaskRepository = Depends(get_repository)):
+def get_get_tasks_use_case(
+    repository: TaskRepository = Depends(get_repository),
+) -> GetTasks:
     return GetTasks(repository)
 
 
-def get_complete_task_use_case(repository: TaskRepository = Depends(get_repository)):
+def get_complete_task_use_case(
+    repository: TaskRepository = Depends(get_repository),
+) -> CompleteTask:
     return CompleteTask(repository)
 
 
-def get_search_tasks_use_case():
+def get_search_tasks_use_case() -> SearchTasks:
     return SearchTasks()
 
 
-def get_filter_tasks_use_case():
+def get_filter_tasks_use_case() -> FilterTasks:
     return FilterTasks()
 
 
-def get_sort_tasks_use_case():
+def get_sort_tasks_use_case() -> SortTasks:
     return SortTasks()
