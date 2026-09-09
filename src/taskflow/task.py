@@ -14,13 +14,14 @@ class Task:
         priority: Priority = Priority.MEDIUM,
         due_date: date | None = None,
         task_id: UUID | None = None,
+        completed: bool = False,
     ) -> None:
         cleaned_title = title.strip()
         if not cleaned_title:
             raise EmptyTitleError("Der Titel darf nicht leer sein. ")
         self.title = cleaned_title
         self.id = task_id or uuid4()
-        self.completed = False
+        self.completed = completed
         self.priority = priority
         self.due_date = due_date
 

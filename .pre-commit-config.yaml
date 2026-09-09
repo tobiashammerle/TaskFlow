@@ -16,3 +16,4 @@ repos:
           - python-dotenv
           - fastapi
           - pydantic
+          - sqlalchemy

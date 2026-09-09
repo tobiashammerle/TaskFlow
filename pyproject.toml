@@ -11,6 +11,7 @@ requires-python = ">=3.12"
 dependencies = [
     "python-dotenv>=1.2.3",
     "fastapi",
+    "sqlalchemy>=2.0",
 ]
 
 [project.optional-dependencies]
