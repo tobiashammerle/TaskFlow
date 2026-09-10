@@ -11,6 +11,7 @@ from taskflow.cli import run_cli
 from taskflow.config import load_repository_type
 from taskflow.logging_config import configure_logging
 from taskflow.repository_factory import create_repository
+from taskflow.repository_unit_of_work import RepositoryUnitOfWork
 
 logger = logging.getLogger(__name__)
 
@@ -23,9 +24,10 @@ def main() -> None:
 
     repository_type = load_repository_type(Path("settings.ini"))
     repository = create_repository(repository_type)
-    create_task = CreateTask(repository)
-    complete_task = CompleteTask(repository)
-    remove_task = RemoveTask(repository)
+    uow = RepositoryUnitOfWork(repository)
+    create_task = CreateTask(uow)
+    complete_task = CompleteTask(uow)
+    remove_task = RemoveTask(uow)
     get_tasks = GetTasks(repository)
 
     run_cli(create_task, complete_task, remove_task, get_tasks)

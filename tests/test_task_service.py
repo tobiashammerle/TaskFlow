@@ -11,7 +11,7 @@ from taskflow.task import Task
 from taskflow.task_repository import TaskRepository
 from taskflow.task_service import TaskService
 from taskflow.task_statistics import TaskStatistics
-from tests.fakes import FakeTaskRepository
+from tests.fakes import FakeTaskRepository, FakeUnitOfWork
 
 # class FakeTaskRepository:
 #     def __init__(self) -> None:
@@ -25,13 +25,15 @@ from tests.fakes import FakeTaskRepository
 @pytest.fixture
 def service() -> TaskService:
     repository: TaskRepository = FakeTaskRepository()
-    return TaskService(repository)
+    uow: FakeUnitOfWork = FakeUnitOfWork(repository)
+    return TaskService(uow)
 
 
 @pytest.fixture
 def service_with_tasks() -> TaskService:
     repository = FakeTaskRepository()
-    service = TaskService(repository)
+    uow = FakeUnitOfWork(repository)
+    service = TaskService(uow)
     service.add_task("Python lernen")
     service.add_task("Git lernen")
     return service
@@ -138,7 +140,8 @@ def test_complete_task_raises_task_not_found_error_for_unknown_id(
 
 
 def test_constructor_loads_tasks_from_repository(repository_with_tasks) -> None:
-    service = TaskService(repository_with_tasks)
+    uow = FakeUnitOfWork(repository_with_tasks)
+    service = TaskService(uow)
     tasks = service.get_tasks()
     assert len(tasks) == 2
     assert tasks[0].title == "Python lernen"

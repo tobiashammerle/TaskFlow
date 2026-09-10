@@ -7,6 +7,7 @@ from taskflow.application.create_task import CreateTask
 from taskflow.application.get_tasks import GetTasks
 from taskflow.application.remove_task import RemoveTask
 from taskflow.cli import run_cli
+from taskflow.repository_unit_of_work import RepositoryUnitOfWork
 from taskflow.sqlite_task_repository import SqliteTaskRepository
 from taskflow.task_service import TaskService
 
@@ -21,7 +22,8 @@ def sqlite_repository(tmp_path: Path) -> SqliteTaskRepository:
 
 @pytest.fixture
 def task_service(sqlite_repository) -> TaskService:
-    return TaskService(sqlite_repository)
+    uow = RepositoryUnitOfWork(sqlite_repository)
+    return TaskService(uow)
 
 
 def test_user_can_add_task_through_cli_and_persist_it(
@@ -32,9 +34,10 @@ def test_user_can_add_task_through_cli_and_persist_it(
         "builtins.input",
         lambda _: next(inputs),
     )
-    create_task = CreateTask(sqlite_repository)
-    complete_task = CompleteTask(sqlite_repository)
-    remove_task = RemoveTask(sqlite_repository)
+    uow = RepositoryUnitOfWork(sqlite_repository)
+    create_task = CreateTask(uow)
+    complete_task = CompleteTask(uow)
+    remove_task = RemoveTask(uow)
     get_tasks_use_case = GetTasks(sqlite_repository)
     run_cli(create_task, complete_task, remove_task, get_tasks_use_case)
     tasks = sqlite_repository.get_all()
@@ -50,9 +53,10 @@ def test_user_can_add_and_view_task_through_cli(
         "builtins.input",
         lambda _: next(inputs),
     )
-    create_task = CreateTask(sqlite_repository)
-    complete_task = CompleteTask(sqlite_repository)
-    remove_task = RemoveTask(sqlite_repository)
+    uow = RepositoryUnitOfWork(sqlite_repository)
+    create_task = CreateTask(uow)
+    complete_task = CompleteTask(uow)
+    remove_task = RemoveTask(uow)
     get_tasks_use_case = GetTasks(sqlite_repository)
     run_cli(create_task, complete_task, remove_task, get_tasks_use_case)
     captured = capsys.readouterr()
@@ -68,9 +72,10 @@ def test_user_can_complete_task_through_cli(
         "builtins.input",
         lambda _: next(inputs),
     )
-    create_task = CreateTask(sqlite_repository)
-    complete_task = CompleteTask(sqlite_repository)
-    remove_task = RemoveTask(sqlite_repository)
+    uow = RepositoryUnitOfWork(sqlite_repository)
+    create_task = CreateTask(uow)
+    complete_task = CompleteTask(uow)
+    remove_task = RemoveTask(uow)
     get_tasks_use_case = GetTasks(sqlite_repository)
     run_cli(create_task, complete_task, remove_task, get_tasks_use_case)
     captured = capsys.readouterr()
@@ -89,9 +94,10 @@ def test_user_can_remove_task_through_cli(
         "builtins.input",
         lambda _: next(inputs),
     )
-    create_task = CreateTask(sqlite_repository)
-    complete_task = CompleteTask(sqlite_repository)
-    remove_task = RemoveTask(sqlite_repository)
+    uow = RepositoryUnitOfWork(sqlite_repository)
+    create_task = CreateTask(uow)
+    complete_task = CompleteTask(uow)
+    remove_task = RemoveTask(uow)
     get_tasks_use_case = GetTasks(sqlite_repository)
     run_cli(create_task, complete_task, remove_task, get_tasks_use_case)
     captured = capsys.readouterr()

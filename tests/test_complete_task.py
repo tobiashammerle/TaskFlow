@@ -5,12 +5,13 @@ import pytest
 from taskflow.application.complete_task import CompleteTask
 from taskflow.exceptions import TaskNotFoundError
 from taskflow.task import Task
-from tests.fakes import FakeTaskRepository
+from tests.fakes import FakeTaskRepository, FakeUnitOfWork
 
 
 def test_complete_task_marks_task_as_completed():
     repository = FakeTaskRepository()
-    complete_task = CompleteTask(repository)
+    uow = FakeUnitOfWork(repository)
+    complete_task = CompleteTask(uow)
     task = Task("Test Task")
     repository.add(task)
     complete_task.execute(task.id)
@@ -20,6 +21,7 @@ def test_complete_task_marks_task_as_completed():
 
 def test_complete_task_raises_error_when_task_not_found():
     repository = FakeTaskRepository()
-    complete_task = CompleteTask(repository)
+    uow = FakeUnitOfWork(repository)
+    complete_task = CompleteTask(uow)
     with pytest.raises(TaskNotFoundError):
         complete_task.execute(uuid4())
