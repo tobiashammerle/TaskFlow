@@ -41,9 +41,9 @@ def get_remove_task_use_case(
 
 
 def get_get_tasks_use_case(
-    repository: TaskRepository = Depends(get_repository),
+    uow: UnitOfWork = Depends(get_unit_of_work),
 ) -> GetTasks:
-    return GetTasks(repository)
+    return GetTasks(uow)
 
 
 def get_complete_task_use_case(

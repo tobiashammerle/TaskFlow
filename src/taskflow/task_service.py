@@ -47,9 +47,8 @@ class TaskService:
 
     def get_tasks(self) -> list[Task]:
         """Gibt die aktuelle Aufgabenliste zurück."""
-        with self.uow:
-            get_tasks = GetTasks(self.uow.tasks)
-            return get_tasks.execute()
+        get_tasks = GetTasks(self.uow)
+        return get_tasks.execute()
 
     def complete_task(self, task_id: UUID) -> Task:
         complete_task = CompleteTask(self.uow)

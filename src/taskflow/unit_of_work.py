@@ -5,7 +5,8 @@ from taskflow.task_repository import TaskRepository
 
 
 class UnitOfWork(Protocol):
-    tasks: TaskRepository
+    @property
+    def tasks(self) -> TaskRepository: ...
 
     def __enter__(self) -> Self: ...
 

@@ -38,7 +38,7 @@ def test_user_can_add_task_through_cli_and_persist_it(
     create_task = CreateTask(uow)
     complete_task = CompleteTask(uow)
     remove_task = RemoveTask(uow)
-    get_tasks_use_case = GetTasks(sqlite_repository)
+    get_tasks_use_case = GetTasks(uow)
     run_cli(create_task, complete_task, remove_task, get_tasks_use_case)
     tasks = sqlite_repository.get_all()
     assert len(tasks) == 1
@@ -57,7 +57,7 @@ def test_user_can_add_and_view_task_through_cli(
     create_task = CreateTask(uow)
     complete_task = CompleteTask(uow)
     remove_task = RemoveTask(uow)
-    get_tasks_use_case = GetTasks(sqlite_repository)
+    get_tasks_use_case = GetTasks(uow)
     run_cli(create_task, complete_task, remove_task, get_tasks_use_case)
     captured = capsys.readouterr()
     assert "Aufgabe wurde hinzugefügt." in captured.out
@@ -76,7 +76,7 @@ def test_user_can_complete_task_through_cli(
     create_task = CreateTask(uow)
     complete_task = CompleteTask(uow)
     remove_task = RemoveTask(uow)
-    get_tasks_use_case = GetTasks(sqlite_repository)
+    get_tasks_use_case = GetTasks(uow)
     run_cli(create_task, complete_task, remove_task, get_tasks_use_case)
     captured = capsys.readouterr()
     assert "Aufgabe wurde hinzugefügt." in captured.out
@@ -98,7 +98,7 @@ def test_user_can_remove_task_through_cli(
     create_task = CreateTask(uow)
     complete_task = CompleteTask(uow)
     remove_task = RemoveTask(uow)
-    get_tasks_use_case = GetTasks(sqlite_repository)
+    get_tasks_use_case = GetTasks(uow)
     run_cli(create_task, complete_task, remove_task, get_tasks_use_case)
     captured = capsys.readouterr()
     assert "Aufgabe wurde hinzugefügt." in captured.out
