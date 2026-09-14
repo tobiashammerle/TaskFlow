@@ -5,12 +5,13 @@ import pytest
 from taskflow.application.remove_task import RemoveTask
 from taskflow.exceptions import TaskNotFoundError
 from taskflow.task import Task
-from tests.fakes import FakeTaskRepository
+from tests.fakes import FakeTaskRepository, FakeUnitOfWork
 
 
 def test_remove_task_deletes_task() -> None:
     repository = FakeTaskRepository()
-    remove_task = RemoveTask(repository)
+    uow = FakeUnitOfWork(repository)
+    remove_task = RemoveTask(uow)
     task = Task("Test Task")
     repository.add(task)
     removed_task = remove_task.execute(task.id)
@@ -21,7 +22,8 @@ def test_remove_task_deletes_task() -> None:
 
 def test_remove_task_raises_error_when_task_not_found() -> None:
     repository = FakeTaskRepository()
-    remove_task = RemoveTask(repository)
+    uow = FakeUnitOfWork(repository)
+    remove_task = RemoveTask(uow)
     unknown_task = uuid4()
     with pytest.raises(TaskNotFoundError):
         remove_task.execute(unknown_task)

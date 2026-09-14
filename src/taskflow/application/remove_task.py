@@ -2,16 +2,18 @@ from uuid import UUID
 
 from taskflow.exceptions import TaskNotFoundError
 from taskflow.task import Task
-from taskflow.task_repository import TaskRepository
+from taskflow.unit_of_work import UnitOfWork
 
 
 class RemoveTask:
-    def __init__(self, repository: TaskRepository) -> None:
-        self.repository = repository
+    def __init__(self, uow: UnitOfWork) -> None:
+        self.uow = uow
 
     def execute(self, task_id: UUID) -> Task:
-        task = self.repository.get_by_id(task_id)
-        if task is None:
-            raise TaskNotFoundError("Task nicht gefunden.")
-        self.repository.delete(task_id)
-        return task
+        with self.uow:
+            task = self.uow.tasks.get_by_id(task_id)
+            if task is None:
+                raise TaskNotFoundError("Task nicht gefunden.")
+            self.uow.tasks.delete(task_id)
+            self.uow.commit()
+            return task

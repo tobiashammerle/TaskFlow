@@ -1,10 +1,11 @@
 from taskflow.task import Task
-from taskflow.task_repository import TaskRepository
+from taskflow.unit_of_work import UnitOfWork
 
 
 class GetTasks:
-    def __init__(self, repository: TaskRepository) -> None:
-        self.repository = repository
+    def __init__(self, uow: UnitOfWork) -> None:
+        self.uow = uow
 
     def execute(self) -> list[Task]:
-        return self.repository.get_all()
+        with self.uow:
+            return self.uow.tasks.get_all()

@@ -2,12 +2,13 @@ from taskflow.application.complete_task import CompleteTask
 from taskflow.application.filter_tasks import FilterTasks
 from taskflow.filter_type import FilterType
 from taskflow.task import Task
-from tests.fakes import FakeTaskRepository
+from tests.fakes import FakeTaskRepository, FakeUnitOfWork
 
 
 def test_filter_tasks_with_filter_type_completed_returns_all_completed_tasks() -> None:
     repository = FakeTaskRepository()
-    complete_task = CompleteTask(repository)
+    uow = FakeUnitOfWork(repository)
+    complete_task = CompleteTask(uow)
     Task_A = Task("Task A")
     Task_B = Task("Task B")
     Task_C = Task("Task C")
@@ -26,7 +27,8 @@ def test_filter_tasks_with_filter_type_completed_returns_all_completed_tasks() -
 
 def test_filter_tasks_with_filter_type_open_returns_all_open_tasks() -> None:
     repository = FakeTaskRepository()
-    complete_task = CompleteTask(repository)
+    uow = FakeUnitOfWork(repository)
+    complete_task = CompleteTask(uow)
     Task_A = Task("Task A")
     Task_B = Task("Task B")
     Task_C = Task("Task C")
@@ -44,7 +46,8 @@ def test_filter_tasks_with_filter_type_open_returns_all_open_tasks() -> None:
 
 def test_filter_tasks_with_filter_type_all_returns_all_tasks() -> None:
     repository = FakeTaskRepository()
-    complete_task = CompleteTask(repository)
+    uow = FakeUnitOfWork(repository)
+    complete_task = CompleteTask(uow)
     Task_A = Task("Task A")
     Task_B = Task("Task B")
     Task_C = Task("Task C")
@@ -73,7 +76,8 @@ def test_filter_tasks_with_empty_repository_returns_empty_list() -> None:
 
 def test_filter_tasks_does_not_change_original_task_list() -> None:
     repository = FakeTaskRepository()
-    complete_task = CompleteTask(repository)
+    uow = FakeUnitOfWork(repository)
+    complete_task = CompleteTask(uow)
     Task_A = Task("Task A")
     Task_B = Task("Task B")
     Task_C = Task("Task C")

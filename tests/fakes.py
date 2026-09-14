@@ -1,6 +1,8 @@
+from types import TracebackType
 from uuid import UUID
 
 from taskflow.task import Task
+from taskflow.task_repository import TaskRepository
 
 
 class FakeTaskRepository:
@@ -30,3 +32,26 @@ class FakeTaskRepository:
             if task.id == task_id:
                 return task
         return None
+
+
+class FakeUnitOfWork:
+    def __init__(self, tasks: TaskRepository | None = None) -> None:
+        self.tasks: TaskRepository = tasks or FakeTaskRepository()
+        self.committed = False
+
+    def __enter__(self) -> "FakeUnitOfWork":
+        return self
+
+    def __exit__(
+        self,
+        exc_type: type[Exception] | None,
+        exc_value: Exception | None,
+        traceback: TracebackType | None,
+    ) -> None:
+        self.rollback()
+
+    def commit(self) -> None:
+        self.committed = True
+
+    def rollback(self) -> None:
+        pass

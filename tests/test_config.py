@@ -34,3 +34,14 @@ def test_load_repository_type_raises_configuration_error_for_missing_key(
     config_file.write_text("[database]\ntype = sqlite\n", encoding="utf-8")
     with pytest.raises(ConfigurationError):
         load_repository_type(config_file)
+
+
+def test_load_repository_type_returns_sqlalchemy(tmp_path: Path) -> None:
+    # Arrange
+    config_file = tmp_path / "settings.ini"
+    config_file.write_text("[repository]\ntype = sqlalchemy\n", encoding="utf-8")
+    # Act
+    repository_type = load_repository_type(config_file)
+
+    # Assert
+    assert repository_type == RepositoryType.SQLALCHEMY
