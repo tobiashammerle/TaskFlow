@@ -11,9 +11,11 @@ from taskflow.application.search_tasks import SearchTasks
 from taskflow.application.sort_tasks import SortTasks
 from taskflow.config import load_repository_type
 from taskflow.repository_factory import create_repository
+from taskflow.repository_type import RepositoryType
 from taskflow.repository_unit_of_work import RepositoryUnitOfWork
 from taskflow.task_repository import TaskRepository
 from taskflow.unit_of_work import UnitOfWork
+from taskflow.unit_of_work_factory import create_unit_of_work
 
 
 def get_repository() -> TaskRepository:
@@ -25,6 +27,9 @@ def get_repository() -> TaskRepository:
 def get_unit_of_work(
     repository: TaskRepository = Depends(get_repository),
 ) -> UnitOfWork:
+    repository_type = load_repository_type(Path("settings.ini"))
+    if repository_type == RepositoryType.SQLALCHEMY:
+        return create_unit_of_work(repository_type)
     return RepositoryUnitOfWork(repository)
 
 

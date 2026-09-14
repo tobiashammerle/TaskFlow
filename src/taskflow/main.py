@@ -7,6 +7,7 @@ from taskflow.application.complete_task import CompleteTask
 from taskflow.application.create_task import CreateTask
 from taskflow.application.get_tasks import GetTasks
 from taskflow.application.remove_task import RemoveTask
+from taskflow.application_setup import initialize_application
 from taskflow.cli import run_cli
 from taskflow.config import load_repository_type
 from taskflow.logging_config import configure_logging
@@ -22,6 +23,7 @@ def main() -> None:
     logger.info("TaskFlow gestartet")
 
     repository_type = load_repository_type(Path("settings.ini"))
+    initialize_application(repository_type)
     uow = create_unit_of_work(repository_type)
     create_task = CreateTask(uow)
     complete_task = CompleteTask(uow)
