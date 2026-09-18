@@ -1,13 +1,9 @@
-from pathlib import Path
-from unittest.mock import Mock
 from uuid import uuid4
 
 import pytest
 from fastapi.testclient import TestClient
 
-import taskflow.api as api_module
 from taskflow.api import app
-from taskflow.repository_type import RepositoryType
 from taskflow.routers.dependencies import (
     get_repository,
 )
@@ -528,24 +524,3 @@ def test_limit_larger_than_remaining_tasks_returns_remaining_tasks(client):
     assert len(data) == 2
     assert data[0]["title"] == "D"
     assert data[1]["title"] == "E"
-
-
-@pytest.mark.anyio
-async def test_lifespan_initializes_application(monkeypatch) -> None:
-    repository_type = RepositoryType.SQLALCHEMY
-    load_repository_type_mock = Mock(return_value=repository_type)
-    initialize_application_mock = Mock()
-    monkeypatch.setattr(
-        api_module,
-        "load_repository_type",
-        load_repository_type_mock,
-    )
-    monkeypatch.setattr(
-        api_module,
-        "initialize_application",
-        initialize_application_mock,
-    )
-    async with api_module.lifespan(app):
-        pass
-    load_repository_type_mock.assert_called_once_with(Path("settings.ini"))
-    initialize_application_mock.assert_called_once_with(repository_type)

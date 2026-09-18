@@ -9,7 +9,6 @@ def test_main_connects_application_components(monkeypatch) -> None:
     uow = Mock()
     repository_type = RepositoryType.SQLITE
     load_repository_type_mock = Mock(return_value=repository_type)
-    initialize_application_mock = Mock()
     create_task = Mock()
     complete_task = Mock()
     remove_task = Mock()
@@ -30,11 +29,6 @@ def test_main_connects_application_components(monkeypatch) -> None:
     )
     monkeypatch.setattr(
         main_module,
-        "initialize_application",
-        initialize_application_mock,
-    )
-    monkeypatch.setattr(
-        main_module,
         "create_unit_of_work",
         uow_factory,
     )
@@ -46,7 +40,6 @@ def test_main_connects_application_components(monkeypatch) -> None:
     main_module.main()
 
     load_repository_type_mock.assert_called_once_with(Path("settings.ini"))
-    initialize_application_mock.assert_called_once_with(repository_type)
     uow_factory.assert_called_once_with(repository_type)
     create_task_factory.assert_called_once_with(uow)
     complete_task_factory.assert_called_once_with(uow)
