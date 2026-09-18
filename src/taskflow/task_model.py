@@ -15,3 +15,4 @@ class TaskModel(Base):
     completed: Mapped[bool] = mapped_column()
     priority: Mapped[str] = mapped_column()
     due_date: Mapped[date | None] = mapped_column()
+    description: Mapped[str | None] = mapped_column()

@@ -17,3 +17,4 @@ repos:
           - fastapi
           - pydantic
           - sqlalchemy
+          - alembic
