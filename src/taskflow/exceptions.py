@@ -2,6 +2,18 @@ class TaskFlowError(Exception):
     """Basisklasse für alle TaskFlow-spezifischen Fehler."""
 
 
+class InvalidEmailError(Exception):
+    """Wird ausgelöst, wenn eine ungültige E-Mail-Adresse verwendet wird."""
+
+
+class InvalidPasswordError(Exception):
+    """Wird ausgelöst, wenn ein ungültiges Passwort verwendet wird."""
+
+
+class DuplicateUserError(Exception):
+    """User existiert bereits."""
+
+
 class EmptyTitleError(TaskFlowError):
     """Der Titel einer Aufgabe darf nicht leer sein."""
 

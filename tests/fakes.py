@@ -3,6 +3,7 @@ from uuid import UUID
 
 from taskflow.task import Task
 from taskflow.task_repository import TaskRepository
+from taskflow.user import User
 
 
 class FakeTaskRepository:
@@ -55,3 +56,25 @@ class FakeUnitOfWork:
 
     def rollback(self) -> None:
         pass
+
+
+class FakePasswordHasher:
+    def hash(self, password: str) -> str:
+        return f"hashed-{password}"
+
+    def verify(self, password: str, password_hash: str) -> bool:
+        return password_hash == self.hash(password)
+
+
+class FakeUserRepository:
+    def __init__(self) -> None:
+        self.users: list[User] = []
+
+    def add(self, user: User) -> None:
+        self.users.append(user)
+
+    def get_by_email(self, email: str) -> User | None:
+        for user in self.users:
+            if user.email == email:
+                return user
+        return None
