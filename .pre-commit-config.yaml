@@ -18,3 +18,4 @@ repos:
           - pydantic
           - sqlalchemy
           - alembic
+          - argon2-cffi
