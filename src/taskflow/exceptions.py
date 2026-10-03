@@ -14,6 +14,14 @@ class DuplicateUserError(Exception):
     """User existiert bereits."""
 
 
+class InvalidCredentialsError(Exception):
+    """Ungültige Zugangsdaten."""
+
+
+class InvalidTokenError(Exception):
+    """ungültiger Token."""
+
+
 class EmptyTitleError(TaskFlowError):
     """Der Titel einer Aufgabe darf nicht leer sein."""
 

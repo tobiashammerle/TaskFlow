@@ -78,3 +78,27 @@ class FakeUserRepository:
             if user.email == email:
                 return user
         return None
+
+
+class FakeUserUnitOfWork:
+    def __init__(self) -> None:
+        self.users = FakeUserRepository()
+        self.committed = False
+
+    def __enter__(self) -> "FakeUserUnitOfWork":
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback) -> None:
+        pass
+
+    def commit(self) -> None:
+        self.committed = True
+
+
+class FakeTokenService:
+    def create_access_token(self, user_id: UUID) -> str:
+        return f"token-{user_id}"
+
+    def decode_access_token(self, token: str) -> UUID:
+        user_id = token.removeprefix("token-")
+        return UUID(user_id)

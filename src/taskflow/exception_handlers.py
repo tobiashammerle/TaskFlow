@@ -12,3 +12,11 @@ async def duplicate_task_handler(request: Request, exc: Exception):
 
 async def empty_title_handler(request: Request, exc: Exception):
     return JSONResponse(status_code=400, content={"detail": str(exc)})
+
+
+async def duplicate_user_handler(request: Request, exc: Exception):
+    return JSONResponse(status_code=409, content={"detail": str(exc)})
+
+
+async def invalid_credentials_handler(request: Request, exc: Exception):
+    return JSONResponse(status_code=401, content={"detail": str(exc)})
