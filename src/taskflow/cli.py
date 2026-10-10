@@ -19,6 +19,7 @@ class CreateTaskHandler(Protocol):
     def execute(
         self,
         title: str,
+        owner_id: UUID,
         priority: Priority = Priority.MEDIUM,
         due_date: date | None = None,
     ) -> Task: ...
@@ -41,13 +42,14 @@ def run_cli(
     complete_task_use_case: CompleteTaskHandler,
     remove_task_use_case: RemoveTaskHandler,
     get_tasks_use_case: GetTasksHandler,
+    owner_id: UUID,
 ) -> None:
     while True:
         show_menu()
         choice = input("Auswahl: ").strip()
         try:
             if choice == "1":
-                add_task(create_task)
+                add_task(create_task, owner_id)
             elif choice == "2":
                 show_tasks(get_tasks_use_case)
             elif choice == "3":
@@ -77,11 +79,11 @@ def show_menu() -> None:
     print("5. Beenden")
 
 
-def add_task(create_task: CreateTaskHandler) -> None:
+def add_task(create_task: CreateTaskHandler, owner_id: UUID) -> None:
     """Fragt eine Aufgabe ab und fügt sie der Liste hinzu"""
     title = input("Titel der Aufgabe: ").strip()
     try:
-        create_task.execute(title=title)
+        create_task.execute(title=title, owner_id=owner_id)
     except EmptyTitleError:
         print("Der Titel darf nicht leer sein.")
         return

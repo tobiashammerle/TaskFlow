@@ -29,12 +29,15 @@ class TaskService:
     def add_task(
         self,
         title: str,
+        owner_id: UUID,
         priority: Priority = Priority.MEDIUM,
         due_date: date | None = None,
     ) -> Task:
         """Fügt eine Aufgabe hinzu, wenn der Titel nicht leer ist."""
         create_task = CreateTask(self.uow)
-        task = create_task.execute(title, priority, due_date)
+        task = create_task.execute(
+            title=title, owner_id=owner_id, priority=priority, due_date=due_date
+        )
         logger.info("Aufgabe erstellt: %s", task.title)
         return task
 
@@ -45,10 +48,10 @@ class TaskService:
         logger.info("Aufgabe gelöscht: %s", removed_task.title)
         return removed_task
 
-    def get_tasks(self) -> list[Task]:
+    def get_tasks(self, owner_id: UUID | None = None) -> list[Task]:
         """Gibt die aktuelle Aufgabenliste zurück."""
         get_tasks = GetTasks(self.uow)
-        return get_tasks.execute()
+        return get_tasks.execute(owner_id=owner_id)
 
     def complete_task(self, task_id: UUID) -> Task:
         complete_task = CompleteTask(self.uow)

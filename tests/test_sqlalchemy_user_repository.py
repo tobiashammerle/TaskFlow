@@ -32,3 +32,15 @@ def test_get_by_email_returns_none_when_user_does_not_exist(
 ) -> None:
     loaded_user = repository.get_by_email("unknown@example.com")
     assert loaded_user is None
+
+
+def test_get_by_id_returns_user(
+    repository: SqlalchemyUserRepository,
+) -> None:
+    user = User(email="max@example.com", password_hash="hashed-password")
+    repository.add(user)
+    loaded_user = repository.get_by_id(user.id)
+    assert loaded_user is not None
+    assert loaded_user.id == user.id
+    assert loaded_user.email == user.email
+    assert loaded_user.password_hash == user.password_hash

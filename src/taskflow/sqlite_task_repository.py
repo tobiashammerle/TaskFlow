@@ -24,6 +24,7 @@ class SqliteTaskRepository:
                     id INTEGER PRIMARY KEY
                 AUTOINCREMENT,
                 task_id TEXT NOT NULL UNIQUE,
+                owner_id TEXT NOT NULL,
                 title TEXT NOT NULL,
                 completed INTEGER NOT NULL,
                 priority TEXT NOT NULL,
@@ -50,9 +51,10 @@ class SqliteTaskRepository:
                     title,
                     completed,
                     priority,
-                    due_date
+                    due_date,
+                    owner_id
                     )
-                    VALUES (?, ?, ?, ?, ?)
+                    VALUES (?, ?, ?, ?, ?, ?)
                     """,
                     (
                         str(task.id),
@@ -64,6 +66,7 @@ class SqliteTaskRepository:
                             if task.due_date is not None
                             else None
                         ),
+                        str(task.owner_id),
                     ),
                 )
 
@@ -73,7 +76,7 @@ class SqliteTaskRepository:
                 cursor = connection.cursor()
                 cursor.execute(
                     """
-                    SELECT task_id, title, completed, priority, due_date
+                    SELECT task_id, owner_id, title, completed, priority, due_date
                     FROM tasks
                     ORDER BY id
                     """
@@ -81,9 +84,55 @@ class SqliteTaskRepository:
                 rows = cursor.fetchall()
             tasks: list[Task] = []
 
-            for task_id, title, completed, priority, due_date_value in rows:
+            for task_id, owner_id, title, completed, priority, due_date_value in rows:
                 task = Task(
                     title=title,
+                    owner_id=UUID(owner_id),
+                    priority=Priority(priority),
+                    due_date=(
+                        date.fromisoformat(due_date_value)
+                        if due_date_value is not None
+                        else None
+                    ),
+                    task_id=UUID(task_id),
+                )
+                if bool(completed):
+                    task.complete()
+                tasks.append(task)
+            return tasks
+        except sqlite3.Error as error:
+            raise RepositoryError(
+                "Fehler beim Lesen der Aufgaben aus dem Repository."
+            ) from error
+
+    def get_all_by_owner(self, owner_id: UUID) -> list[Task]:
+        """Lädt alle Aufgaben eines bestimmten Besitzers aus der SQLite-Datenbank."""
+        try:
+            with sqlite3.connect(self.database_path) as connection:
+                cursor = connection.cursor()
+                cursor.execute(
+                    """
+                    SELECT task_id, owner_id, title, completed, priority, due_date
+                    FROM tasks
+                    WHERE owner_id = ?
+                    ORDER BY id
+                    """,
+                    (str(owner_id),),
+                )
+                rows = cursor.fetchall()
+
+            tasks: list[Task] = []
+            for (
+                task_id,
+                owner_id_value,
+                title,
+                completed,
+                priority,
+                due_date_value,
+            ) in rows:
+                task = Task(
+                    title=title,
+                    owner_id=UUID(owner_id_value),
                     priority=Priority(priority),
                     due_date=(
                         date.fromisoformat(due_date_value)
@@ -108,7 +157,7 @@ class SqliteTaskRepository:
                 cursor = connection.cursor()
                 cursor.execute(
                     """
-                    SELECT task_id, title, completed, priority, due_date
+                    SELECT task_id, owner_id, title, completed, priority, due_date
                     FROM tasks
                     WHERE task_id = ?
                     """,
@@ -119,9 +168,10 @@ class SqliteTaskRepository:
             if row is None:
                 return None
 
-            task_id, title, completed, priority, due_date_value = row
+            task_id, owner_id, title, completed, priority, due_date_value = row
             task = Task(
                 title=title,
+                owner_id=UUID(owner_id),
                 priority=Priority(priority),
                 due_date=(
                     date.fromisoformat(due_date_value)
@@ -147,15 +197,17 @@ class SqliteTaskRepository:
                     """
                     INSERT INTO tasks (
                         task_id,
+                        owner_id,
                         title,
                         completed,
                         priority,
                         due_date
                     )
-                    VALUES (?, ?, ?, ?, ?)
+                    VALUES (?, ?, ?, ?, ?, ?)
                     """,
                     (
                         str(task.id),
+                        str(task.owner_id),
                         task.title,
                         int(task.completed),
                         task.priority.value,

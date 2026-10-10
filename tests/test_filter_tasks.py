@@ -1,3 +1,5 @@
+from uuid import uuid4
+
 from taskflow.application.complete_task import CompleteTask
 from taskflow.application.filter_tasks import FilterTasks
 from taskflow.filter_type import FilterType
@@ -6,12 +8,13 @@ from tests.fakes import FakeTaskRepository, FakeUnitOfWork
 
 
 def test_filter_tasks_with_filter_type_completed_returns_all_completed_tasks() -> None:
+    owner_id = uuid4()
     repository = FakeTaskRepository()
     uow = FakeUnitOfWork(repository)
     complete_task = CompleteTask(uow)
-    Task_A = Task("Task A")
-    Task_B = Task("Task B")
-    Task_C = Task("Task C")
+    Task_A = Task("Task A", owner_id=owner_id)
+    Task_B = Task("Task B", owner_id=owner_id)
+    Task_C = Task("Task C", owner_id=owner_id)
     repository.add(Task_A)
     repository.add(Task_B)
     repository.add(Task_C)
@@ -26,12 +29,13 @@ def test_filter_tasks_with_filter_type_completed_returns_all_completed_tasks() -
 
 
 def test_filter_tasks_with_filter_type_open_returns_all_open_tasks() -> None:
+    owner_id = uuid4()
     repository = FakeTaskRepository()
     uow = FakeUnitOfWork(repository)
     complete_task = CompleteTask(uow)
-    Task_A = Task("Task A")
-    Task_B = Task("Task B")
-    Task_C = Task("Task C")
+    Task_A = Task("Task A", owner_id=owner_id)
+    Task_B = Task("Task B", owner_id=owner_id)
+    Task_C = Task("Task C", owner_id=owner_id)
     repository.add(Task_A)
     repository.add(Task_B)
     repository.add(Task_C)
@@ -45,12 +49,13 @@ def test_filter_tasks_with_filter_type_open_returns_all_open_tasks() -> None:
 
 
 def test_filter_tasks_with_filter_type_all_returns_all_tasks() -> None:
+    owner_id = uuid4()
     repository = FakeTaskRepository()
     uow = FakeUnitOfWork(repository)
     complete_task = CompleteTask(uow)
-    Task_A = Task("Task A")
-    Task_B = Task("Task B")
-    Task_C = Task("Task C")
+    Task_A = Task("Task A", owner_id=owner_id)
+    Task_B = Task("Task B", owner_id=owner_id)
+    Task_C = Task("Task C", owner_id=owner_id)
     repository.add(Task_A)
     repository.add(Task_B)
     repository.add(Task_C)
@@ -75,12 +80,13 @@ def test_filter_tasks_with_empty_repository_returns_empty_list() -> None:
 
 
 def test_filter_tasks_does_not_change_original_task_list() -> None:
+    owner_id = uuid4()
     repository = FakeTaskRepository()
     uow = FakeUnitOfWork(repository)
     complete_task = CompleteTask(uow)
-    Task_A = Task("Task A")
-    Task_B = Task("Task B")
-    Task_C = Task("Task C")
+    Task_A = Task("Task A", owner_id=owner_id)
+    Task_B = Task("Task B", owner_id=owner_id)
+    Task_C = Task("Task C", owner_id=owner_id)
     repository.add(Task_A)
     repository.add(Task_B)
     repository.add(Task_C)

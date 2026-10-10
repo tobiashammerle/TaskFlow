@@ -5,21 +5,36 @@ from fastapi.testclient import TestClient
 
 from taskflow.api import app
 from taskflow.routers.dependencies import (
+    get_current_user,
     get_repository,
 )
+from taskflow.task import Task
+from taskflow.user import User
 from tests.fakes import FakeTaskRepository
 
 V1_TASKS_URL = "/api/v1/tasks"
 
 
 @pytest.fixture
-def client():
-    test_repository = FakeTaskRepository()
+def test_repository() -> FakeTaskRepository:
+    return FakeTaskRepository()
 
+
+@pytest.fixture
+def current_user() -> User:
+    return User(email="test@example.com", password_hash="hashed-password")
+
+
+@pytest.fixture
+def client(test_repository: FakeTaskRepository, current_user: User):
     def override_get_repository():
         return test_repository
 
+    def override_get_current_user() -> User:
+        return current_user
+
     app.dependency_overrides[get_repository] = override_get_repository
+    app.dependency_overrides[get_current_user] = override_get_current_user
 
     yield TestClient(app)
     app.dependency_overrides.clear()
@@ -100,6 +115,21 @@ def test_create_task_with_empty_string_returns_400(client):
     assert response.status_code == 400
 
 
+def test_get_tasks_without_authentication_returns_401():
+    with TestClient(app) as client:
+        response = client.get(V1_TASKS_URL)
+    assert response.status_code == 401
+
+
+def test_get_tasks_with_invalid_token_returns_401(monkeypatch):
+    monkeypatch.setenv("JWT_SECRET", "test-secret")
+    with TestClient(app) as client:
+        response = client.get(
+            V1_TASKS_URL, headers={"Authorization": "Bearer invalid-token"}
+        )
+    assert response.status_code == 401
+
+
 def test_get_tasks_returns_empty_list(client):
     response = client.get(V1_TASKS_URL)
 
@@ -124,6 +154,19 @@ def test_get_tasks_returns_created_task(client):
     assert response.json()[0]["title"] == "Backend lernen"
 
 
+def test_get_tasks_returns_only_tasks_of_current_user(
+    client, test_repository, current_user
+):
+    own_task = Task("Eigene Aufgabe", owner_id=current_user.id)
+    foreign_task = Task("Fremde Aufgabe", owner_id=uuid4())
+    test_repository.add(own_task)
+    test_repository.add(foreign_task)
+    response = client.get(V1_TASKS_URL)
+    assert response.status_code == 200
+    assert len(response.json()) == 1
+    assert response.json()[0]["title"] == "Eigene Aufgabe"
+
+
 def test_complete_task_returns_completed_task(client):
     create_response = client.post(
         V1_TASKS_URL,
@@ -144,6 +187,14 @@ def test_complete_unknown_task_returns_404(client):
     assert response.json()["detail"] == "Task nicht gefunden."
 
 
+def test_complete_task_of_other_user_returns_404(client, test_repository):
+    foreign_task = Task("Fremde Aufgabe", owner_id=uuid4())
+    test_repository.add(foreign_task)
+    response = client.patch(f"{V1_TASKS_URL}/{foreign_task.id}/complete")
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Task nicht gefunden."
+
+
 def test_delete_task_returns_204(client):
     create_response = client.post(
         V1_TASKS_URL,
@@ -158,6 +209,14 @@ def test_delete_task_returns_204(client):
 def test_delete_unknown_task_returns_404(client):
     unknown_task_id = uuid4()
     response = client.delete(f"{V1_TASKS_URL}/{unknown_task_id}")
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Task nicht gefunden."
+
+
+def test_delete_task_of_other_user_returns_404(client, test_repository):
+    foreign_task = Task("Fremde Aufgabe", owner_id=uuid4())
+    test_repository.add(foreign_task)
+    response = client.delete(f"{V1_TASKS_URL}/{foreign_task.id}")
     assert response.status_code == 404
     assert response.json()["detail"] == "Task nicht gefunden."
 

@@ -1,11 +1,13 @@
 from pathlib import Path
 from unittest.mock import Mock
+from uuid import UUID
 
 import taskflow.main as main_module
 from taskflow.repository_type import RepositoryType
 
 
 def test_main_connects_application_components(monkeypatch) -> None:
+    expected_owner_id = UUID("00000000-0000-0000-0000-000000000001")
     uow = Mock()
     repository_type = RepositoryType.SQLITE
     load_repository_type_mock = Mock(return_value=repository_type)
@@ -46,5 +48,5 @@ def test_main_connects_application_components(monkeypatch) -> None:
     remove_task_factory.assert_called_once_with(uow)
     get_tasks_factory.assert_called_once_with(uow)
     run_cli_mock.assert_called_once_with(
-        create_task, complete_task, remove_task, get_tasks
+        create_task, complete_task, remove_task, get_tasks, expected_owner_id
     )

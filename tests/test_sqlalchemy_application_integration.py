@@ -1,4 +1,5 @@
 from pathlib import Path
+from uuid import uuid4
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -11,6 +12,7 @@ from taskflow.task_model import TaskModel  # noqa: F401
 
 
 def test_application_persists_task_with_sqlalchemy(tmp_path: Path) -> None:
+    owner_id = uuid4()
     database = tmp_path / "test.db"
     engine = create_engine(f"sqlite:///{database}")
     session_factory = sessionmaker(bind=engine)
@@ -18,7 +20,7 @@ def test_application_persists_task_with_sqlalchemy(tmp_path: Path) -> None:
     write_uow = SqlalchemyUnitOfWork(session_factory)
     read_uow = SqlalchemyUnitOfWork(session_factory)
     create_task = CreateTask(write_uow)
-    create_task.execute("Python lernen")
+    create_task.execute("Python lernen", owner_id=owner_id)
     get_tasks = GetTasks(read_uow)
     tasks = get_tasks.execute()
 

@@ -1,4 +1,5 @@
 from datetime import date
+from uuid import uuid4
 
 from taskflow.application.sort_tasks import SortTasks
 from taskflow.priority import Priority
@@ -8,10 +9,11 @@ from tests.fakes import FakeTaskRepository
 
 
 def test_sort_tasks_by_title_returns_tasks_in_alphabetical_order() -> None:
+    owner_id = uuid4()
     repository = FakeTaskRepository()
-    repository.add(Task("Python lernen"))
-    repository.add(Task("Einkaufen"))
-    repository.add(Task("Git lernen"))
+    repository.add(Task("Python lernen", owner_id=owner_id))
+    repository.add(Task("Einkaufen", owner_id=owner_id))
+    repository.add(Task("Git lernen", owner_id=owner_id))
     tasks = repository.get_all()
     sort_tasks_use_case = SortTasks()
     sorted_tasks = sort_tasks_use_case.execute(tasks, SortField.TITLE)
@@ -22,10 +24,11 @@ def test_sort_tasks_by_title_returns_tasks_in_alphabetical_order() -> None:
 
 
 def test_sort_tasks_by_priority_returns_highest_priority_first() -> None:
+    owner_id = uuid4()
     repository = FakeTaskRepository()
-    repository.add(Task("Einkaufen", Priority.LOW))
-    repository.add(Task("Python lernen", Priority.HIGH))
-    repository.add(Task("Git lernen", Priority.MEDIUM))
+    repository.add(Task("Einkaufen", owner_id=owner_id, priority=Priority.LOW))
+    repository.add(Task("Python lernen", owner_id=owner_id, priority=Priority.HIGH))
+    repository.add(Task("Git lernen", owner_id=owner_id, priority=Priority.MEDIUM))
     tasks = repository.get_all()
     sorted_tasks_use_case = SortTasks()
     sorted_tasks = sorted_tasks_use_case.execute(tasks, SortField.PRIORITY)
@@ -40,9 +43,10 @@ def test_sort_tasks_by_priority_returns_highest_priority_first() -> None:
 
 def test_sort_tasks_by_due_date_returns_earliest_due_date_first_and_none_last() -> None:
     repository = FakeTaskRepository()
-    repository.add(Task("Später", due_date=date(2026, 10, 20)))
-    repository.add(Task("Ohne Datum"))
-    repository.add(Task("Früher", due_date=date(2026, 9, 10)))
+    owner_id = uuid4()
+    repository.add(Task("Später", owner_id=owner_id, due_date=date(2026, 10, 20)))
+    repository.add(Task("Ohne Datum", owner_id=owner_id))
+    repository.add(Task("Früher", owner_id=owner_id, due_date=date(2026, 9, 10)))
     tasks = repository.get_all()
     sorted_tasks_use_case = SortTasks()
     sorted_tasks = sorted_tasks_use_case.execute(tasks, SortField.DUE_DATE)
@@ -53,10 +57,11 @@ def test_sort_tasks_by_due_date_returns_earliest_due_date_first_and_none_last() 
 
 
 def test_sort_tasks_by_title_reverse_returns_reverse_order() -> None:
+    owner_id = uuid4()
     repository = FakeTaskRepository()
-    repository.add(Task("Einkaufen"))
-    repository.add(Task("Git lernen"))
-    repository.add(Task("Python lernen"))
+    repository.add(Task("Einkaufen", owner_id=owner_id))
+    repository.add(Task("Git lernen", owner_id=owner_id))
+    repository.add(Task("Python lernen", owner_id=owner_id))
     tasks = repository.get_all()
     sorted_task_use_case = SortTasks()
     sorted_tasks = sorted_task_use_case.execute(tasks, SortField.TITLE, reverse=True)
@@ -67,10 +72,11 @@ def test_sort_tasks_by_title_reverse_returns_reverse_order() -> None:
 
 
 def test_sort_tasks_does_not_change_repository_order() -> None:
+    owner_id = uuid4()
     repository = FakeTaskRepository()
-    repository.add(Task("Python lernen"))
-    repository.add(Task("Einkaufen"))
-    repository.add(Task("Git lernen"))
+    repository.add(Task("Python lernen", owner_id=owner_id))
+    repository.add(Task("Einkaufen", owner_id=owner_id))
+    repository.add(Task("Git lernen", owner_id=owner_id))
     tasks = repository.get_all()
     sorted_task_use_case = SortTasks()
     sorted_task_use_case.execute(tasks, SortField.TITLE)

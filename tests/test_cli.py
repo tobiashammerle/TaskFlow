@@ -1,6 +1,6 @@
 from datetime import date
 from unittest.mock import Mock, create_autospec
-from uuid import UUID
+from uuid import UUID, uuid4
 
 import pytest
 
@@ -15,6 +15,8 @@ from taskflow.priority import Priority
 from taskflow.task import Task
 from taskflow.task_service import TaskService
 
+TEST_OWNER_ID = UUID("00000000-0000-0000-0000-000000000001")
+
 
 def mock_inputs(monkeypatch, values: list[str]) -> None:
     inputs = iter(values)
@@ -27,17 +29,22 @@ def mock_inputs(monkeypatch, values: list[str]) -> None:
 class FakeCreateTask:
     def __init__(self) -> None:
         self.added_title: str | None = None
+        self.added_owner_id: UUID | None = None
 
     def execute(
         self,
         title: str,
+        owner_id: UUID,
         priority: Priority = Priority.MEDIUM,
         due_date: date | None = None,
     ) -> Task:
         if not title:
             raise EmptyTitleError
         self.added_title = title
-        return Task(title=title, priority=priority, due_date=due_date)
+        self.added_owner_id = owner_id
+        return Task(
+            title=title, owner_id=owner_id, priority=priority, due_date=due_date
+        )
 
 
 class FakeCompleteTask:
@@ -66,7 +73,7 @@ class FakeRemoveTask:
 
     def execute(self, task_id) -> Task:
         self.removed_task_id = task_id
-        return Task("Git lernen")
+        return Task("Git lernen", owner_id=uuid4())
 
 
 class FakeTaskService:
@@ -98,7 +105,10 @@ class FakeFailingTaskService:
 
 class FakeFailingCompleteTaskService:
     def __init__(self) -> None:
-        self.tasks = [Task("Python lernen"), Task("Git lernen")]
+        self.tasks = [
+            Task("Python lernen", owner_id=TEST_OWNER_ID),
+            Task("Git lernen", owner_id=TEST_OWNER_ID),
+        ]
 
     def get_tasks(self) -> list[Task]:
         return self.tasks
@@ -119,7 +129,10 @@ class FakeFailingRemoveTask:
 
 class FakeFailingRemoveTaskService:
     def __init__(self) -> None:
-        self.tasks = [Task("Python lernen"), Task("Git lernen")]
+        self.tasks = [
+            Task("Python lernen", owner_id=TEST_OWNER_ID),
+            Task("Git lernen", owner_id=TEST_OWNER_ID),
+        ]
 
     def get_tasks(self) -> list[Task]:
         return self.tasks
@@ -135,23 +148,33 @@ def service() -> FakeTaskService:
 
 @pytest.fixture
 def fake_service_with_tasks() -> FakeTaskService:
-    return FakeTaskService(tasks=[Task("Python lernen"), Task("Git lernen")])
+    return FakeTaskService(
+        tasks=[
+            Task("Python lernen", owner_id=TEST_OWNER_ID),
+            Task("Git lernen", owner_id=TEST_OWNER_ID),
+        ]
+    )
 
 
 @pytest.fixture
 def mock_task_service():
     service = create_autospec(TaskService, instance=True)
-    service.get_tasks.return_value = [Task("Python lernen"), Task("Git üben")]
+    owner_id = uuid4()
+    service.get_tasks.return_value = [
+        Task("Python lernen", owner_id=owner_id),
+        Task("Git üben", owner_id=owner_id),
+    ]
     return service
 
 
 def test_add_task_passes_title_to_service(service, monkeypatch, capsys) -> None:
     create_task = FakeCreateTask()
     mock_inputs(monkeypatch, ["Python lernen"])
-    add_task(create_task)
+    add_task(create_task, TEST_OWNER_ID)
     captured = capsys.readouterr()
     assert create_task.added_title == "Python lernen"
     assert "Aufgabe wurde hinzugefügt." in captured.out
+    assert create_task.added_owner_id == TEST_OWNER_ID
 
 
 def test_add_task_print_error_for_empty_title(monkeypatch, capsys) -> None:
@@ -161,7 +184,7 @@ def test_add_task_print_error_for_empty_title(monkeypatch, capsys) -> None:
         lambda _: "",
     )
 
-    add_task(create_task)
+    add_task(create_task, TEST_OWNER_ID)
 
     captured = capsys.readouterr()
     assert "Der Titel darf nicht leer sein." in captured.out
@@ -175,7 +198,13 @@ def test_show_task_prints_message_when_no_tasks(capsys) -> None:
 
 
 def test_show_tasks_prints_existing_tasks(capsys) -> None:
-    get_tasks_use_case = FakeGetTasks([Task("Python lernen"), Task("Git lernen")])
+    owner_id = uuid4()
+    get_tasks_use_case = FakeGetTasks(
+        [
+            Task("Python lernen", owner_id=owner_id),
+            Task("Git lernen", owner_id=owner_id),
+        ]
+    )
     show_tasks(get_tasks_use_case)
     captured = capsys.readouterr()
     assert "Python lernen" in captured.out
@@ -183,7 +212,11 @@ def test_show_tasks_prints_existing_tasks(capsys) -> None:
 
 
 def test_complete_task_passes_correct_task_id_to_use_case(monkeypatch, capsys) -> None:
-    tasks = [Task("Python lernen"), Task("Git lernen")]
+    owner_id = uuid4()
+    tasks = [
+        Task("Python lernen", owner_id=owner_id),
+        Task("Git lernen", owner_id=owner_id),
+    ]
     get_tasks_use_case = FakeGetTasks(tasks)
     complete_task_use_case = FakeCompleteTask(tasks[1])
     mock_inputs(monkeypatch, ["2"])
@@ -202,7 +235,8 @@ def test_complete_task_prints_error_when_no_existing_tasks(capsys) -> None:
 
 
 def test_complete_task_prints_error_when_task_not_found(monkeypatch, capsys) -> None:
-    tasks = [Task("Python lernen")]
+    owner_id = uuid4()
+    tasks = [Task("Python lernen", owner_id=owner_id)]
     get_tasks_use_case = FakeGetTasks(tasks)
     complete_task_use_case = FakeFailingCompleteTask()
     selected_task = tasks[0]
@@ -213,7 +247,11 @@ def test_complete_task_prints_error_when_task_not_found(monkeypatch, capsys) -> 
 
 
 def test_remove_task_removes_selected_task(monkeypatch, capsys):
-    tasks = [Task("Python lernen"), Task("Git lernen")]
+    owner_id = uuid4()
+    tasks = [
+        Task("Python lernen", owner_id=owner_id),
+        Task("Git lernen", owner_id=owner_id),
+    ]
     get_tasks_use_case = FakeGetTasks(tasks)
     remove_task_use_case = FakeRemoveTask()
     selected_task = tasks[1]
@@ -233,7 +271,8 @@ def test_remove_task_prints_error_when_no_existing_tasks(capsys) -> None:
 
 
 def test_remove_task_prints_error_when_task_not_found(monkeypatch, capsys):
-    tasks = [Task("Python lernen")]
+    owner_id = uuid4()
+    tasks = [Task("Python lernen", owner_id=owner_id)]
     get_tasks_use_case = FakeGetTasks(tasks)
     selected_task = tasks[0]
     remove_task_use_case = FakeFailingRemoveTask()
@@ -250,9 +289,14 @@ def test_run_cli_adds_task_and_exits(monkeypatch, capsys) -> None:
     get_tasks_use_case = FakeGetTasks()
     mock_inputs(monkeypatch, ["1", "Python lernen", "5"])
     run_cli(
-        create_task, complete_task_use_case, remove_task_use_case, get_tasks_use_case
+        create_task,
+        complete_task_use_case,
+        remove_task_use_case,
+        get_tasks_use_case,
+        TEST_OWNER_ID,
     )
     assert create_task.added_title == "Python lernen"
+    assert create_task.added_owner_id == TEST_OWNER_ID
     assert "TaskFlow wird beendet." in capsys.readouterr().out
 
 
@@ -263,7 +307,11 @@ def test_run_cli_prints_error_for_invalid_choice(monkeypatch, capsys) -> None:
     remove_task_use_case = FakeRemoveTask()
     get_tasks_use_case = FakeGetTasks()
     run_cli(
-        create_task, complete_task_use_case, remove_task_use_case, get_tasks_use_case
+        create_task,
+        complete_task_use_case,
+        remove_task_use_case,
+        get_tasks_use_case,
+        TEST_OWNER_ID,
     )
     captured = capsys.readouterr()
     assert "Ungültige Auswahl." in captured.out
@@ -271,8 +319,9 @@ def test_run_cli_prints_error_for_invalid_choice(monkeypatch, capsys) -> None:
 
 
 def test_complete_task_calls_use_case_with_selected_task_id(monkeypatch) -> None:
-    task_1 = Task("Python lernen")
-    task_2 = Task("Git üben")
+    owner_id = uuid4()
+    task_1 = Task("Python lernen", owner_id=owner_id)
+    task_2 = Task("Git üben", owner_id=owner_id)
     tasks = [task_1, task_2]
     complete_task_use_case = FakeCompleteTask(task_2)
     get_tasks_use_case = FakeGetTasks(tasks)
@@ -282,7 +331,8 @@ def test_complete_task_calls_use_case_with_selected_task_id(monkeypatch) -> None
 
 
 def test_complete_task_prints_error_when_use_case_raises(monkeypatch, capsys) -> None:
-    tasks = [Task("Python lernen")]
+    owner_id = uuid4()
+    tasks = [Task("Python lernen", owner_id=owner_id)]
     get_tasks_use_case = FakeGetTasks(tasks)
     selected_task = tasks[0]
     complete_task_use_case = FakeFailingCompleteTask()
@@ -295,7 +345,8 @@ def test_complete_task_prints_error_when_use_case_raises(monkeypatch, capsys) ->
 def test_complete_task_does_not_call_use_case_for_invalid_input(
     monkeypatch, capsys
 ) -> None:
-    tasks = [Task("Python lernen")]
+    owner_id = uuid4()
+    tasks = [Task("Python lernen", owner_id=owner_id)]
     get_tasks_use_case = FakeGetTasks(tasks)
     complete_task_use_case = FakeCompleteTask()
     mock_inputs(monkeypatch, ["abc"])
@@ -306,7 +357,8 @@ def test_complete_task_does_not_call_use_case_for_invalid_input(
 
 
 def test_complete_task_does_not_call_use_case_for_zero(monkeypatch, capsys) -> None:
-    tasks = [Task("Python lernen")]
+    owner_id = uuid4()
+    tasks = [Task("Python lernen", owner_id=owner_id)]
     get_tasks_use_case = FakeGetTasks(tasks)
     complete_task_use_case = FakeCompleteTask()
     mock_inputs(monkeypatch, ["0"])
@@ -319,7 +371,8 @@ def test_complete_task_does_not_call_use_case_for_zero(monkeypatch, capsys) -> N
 def test_complete_task_does_not_call_use_case_for_number_out_of_range(
     monkeypatch, capsys
 ) -> None:
-    tasks = [Task("Python lernen")]
+    owner_id = uuid4()
+    tasks = [Task("Python lernen", owner_id=owner_id)]
     get_tasks_use_case = FakeGetTasks(tasks)
     complete_task_use_case = FakeCompleteTask()
     mock_inputs(monkeypatch, ["99"])
@@ -330,7 +383,11 @@ def test_complete_task_does_not_call_use_case_for_number_out_of_range(
 
 
 def test_remove_task_passes_correct_task_id_to_use_case(monkeypatch) -> None:
-    tasks = [Task("Python lernen"), Task("Git lernen")]
+    owner_id = uuid4()
+    tasks = [
+        Task("Python lernen", owner_id=owner_id),
+        Task("Git lernen", owner_id=owner_id),
+    ]
     get_tasks_use_case = FakeGetTasks(tasks)
     remove_task_use_case = FakeRemoveTask()
     selected_task = tasks[1]
@@ -342,7 +399,11 @@ def test_remove_task_passes_correct_task_id_to_use_case(monkeypatch) -> None:
 def test_remove_task_does_not_call_use_case_for_invalid_input(
     monkeypatch, capsys
 ) -> None:
-    tasks = [Task("Python lernen"), Task("Git lernen")]
+    owner_id = uuid4()
+    tasks = [
+        Task("Python lernen", owner_id=owner_id),
+        Task("Git lernen", owner_id=owner_id),
+    ]
     get_tasks_use_case = FakeGetTasks(tasks)
     remove_task_use_case = FakeRemoveTask()
     mock_inputs(monkeypatch, ["abc"])
@@ -353,7 +414,8 @@ def test_remove_task_does_not_call_use_case_for_invalid_input(
 
 
 def test_remove_task_prints_error_when_use_case_raises(monkeypatch, capsys) -> None:
-    tasks = [Task("Python lernen")]
+    owner_id = uuid4()
+    tasks = [Task("Python lernen", owner_id=owner_id)]
     get_tasks_use_case = FakeGetTasks(tasks)
     selected_task = tasks[0]
     remove_task_use_case = FakeFailingRemoveTask()
@@ -381,6 +443,7 @@ def test_run_cli_handles_repository_error(monkeypatch, capsys):
         complete_task,
         remove_task,
         get_tasks,
+        TEST_OWNER_ID,
     )
 
     captured = capsys.readouterr()
@@ -398,7 +461,7 @@ def test_add_task_prints_error_for_duplicate_title(monkeypatch, capsys):
         lambda _: "Einkaufen",
     )
 
-    add_task(create_task)
+    add_task(create_task, TEST_OWNER_ID)
 
     captured = capsys.readouterr()
 

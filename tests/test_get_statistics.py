@@ -1,12 +1,15 @@
+from uuid import uuid4
+
 from taskflow.application.get_statistics import GetStatistics
 from taskflow.priority import Priority
 from taskflow.task import Task
 
 
 def test_get_statistics_counts_total_completed_and_open_tasks() -> None:
-    task_a = Task("Task A")
-    task_b = Task("Task B")
-    task_c = Task("Task C")
+    owner_id = uuid4()
+    task_a = Task("Task A", owner_id=owner_id)
+    task_b = Task("Task B", owner_id=owner_id)
+    task_c = Task("Task C", owner_id=owner_id)
     task_a.completed = True
     tasks = [task_a, task_b, task_c]
     get_statistics = GetStatistics()
@@ -17,9 +20,10 @@ def test_get_statistics_counts_total_completed_and_open_tasks() -> None:
 
 
 def test_get_statistics_counts_high_priority_tasks() -> None:
-    task_a = Task("Task 1")
-    task_b = Task("Task 2")
-    task_c = Task("Task 3")
+    owner_id = uuid4()
+    task_a = Task("Task 1", owner_id=owner_id)
+    task_b = Task("Task 2", owner_id=owner_id)
+    task_c = Task("Task 3", owner_id=owner_id)
     task_a.priority = Priority.HIGH
     task_b.priority = Priority.HIGH
     task_c.priority = Priority.MEDIUM

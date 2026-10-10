@@ -1,4 +1,5 @@
 from pathlib import Path
+from uuid import UUID
 
 import pytest
 
@@ -10,6 +11,8 @@ from taskflow.cli import run_cli
 from taskflow.repository_unit_of_work import RepositoryUnitOfWork
 from taskflow.sqlite_task_repository import SqliteTaskRepository
 from taskflow.task_service import TaskService
+
+TEST_OWNER_ID = UUID("00000000-0000-0000-0000-000000000001")
 
 
 @pytest.fixture
@@ -39,7 +42,7 @@ def test_user_can_add_task_through_cli_and_persist_it(
     complete_task = CompleteTask(uow)
     remove_task = RemoveTask(uow)
     get_tasks_use_case = GetTasks(uow)
-    run_cli(create_task, complete_task, remove_task, get_tasks_use_case)
+    run_cli(create_task, complete_task, remove_task, get_tasks_use_case, TEST_OWNER_ID)
     tasks = sqlite_repository.get_all()
     assert len(tasks) == 1
     assert tasks[0].title == "Python lernen"
@@ -58,7 +61,7 @@ def test_user_can_add_and_view_task_through_cli(
     complete_task = CompleteTask(uow)
     remove_task = RemoveTask(uow)
     get_tasks_use_case = GetTasks(uow)
-    run_cli(create_task, complete_task, remove_task, get_tasks_use_case)
+    run_cli(create_task, complete_task, remove_task, get_tasks_use_case, TEST_OWNER_ID)
     captured = capsys.readouterr()
     assert "Aufgabe wurde hinzugefügt." in captured.out
     assert "Python lernen" in captured.out
@@ -77,7 +80,7 @@ def test_user_can_complete_task_through_cli(
     complete_task = CompleteTask(uow)
     remove_task = RemoveTask(uow)
     get_tasks_use_case = GetTasks(uow)
-    run_cli(create_task, complete_task, remove_task, get_tasks_use_case)
+    run_cli(create_task, complete_task, remove_task, get_tasks_use_case, TEST_OWNER_ID)
     captured = capsys.readouterr()
     assert "Aufgabe wurde hinzugefügt." in captured.out
     assert "Python lernen" in captured.out
@@ -99,7 +102,7 @@ def test_user_can_remove_task_through_cli(
     complete_task = CompleteTask(uow)
     remove_task = RemoveTask(uow)
     get_tasks_use_case = GetTasks(uow)
-    run_cli(create_task, complete_task, remove_task, get_tasks_use_case)
+    run_cli(create_task, complete_task, remove_task, get_tasks_use_case, TEST_OWNER_ID)
     captured = capsys.readouterr()
     assert "Aufgabe wurde hinzugefügt." in captured.out
     assert "Python lernen" in captured.out

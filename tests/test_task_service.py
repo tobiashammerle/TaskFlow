@@ -1,5 +1,5 @@
 from datetime import date
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 import pytest
 
@@ -23,6 +23,11 @@ from tests.fakes import FakeTaskRepository, FakeUnitOfWork
 
 
 @pytest.fixture
+def owner_id() -> UUID:
+    return uuid4()
+
+
+@pytest.fixture
 def service() -> TaskService:
     repository: TaskRepository = FakeTaskRepository()
     uow: FakeUnitOfWork = FakeUnitOfWork(repository)
@@ -30,24 +35,26 @@ def service() -> TaskService:
 
 
 @pytest.fixture
-def service_with_tasks() -> TaskService:
+def service_with_tasks(owner_id: UUID) -> TaskService:
     repository = FakeTaskRepository()
     uow = FakeUnitOfWork(repository)
     service = TaskService(uow)
-    service.add_task("Python lernen")
-    service.add_task("Git lernen")
+    service.add_task("Python lernen", owner_id=owner_id)
+    service.add_task("Git lernen", owner_id=owner_id)
     return service
 
 
 @pytest.fixture
 def repository_with_tasks() -> FakeTaskRepository:
     repository = FakeTaskRepository()
-    repository.tasks = [Task("Python lernen"), Task("Git lernen")]
+    owner_id = uuid4()
+    repository.add(Task("Python lernen", owner_id=owner_id))
+    repository.add(Task("Git lernen", owner_id=owner_id))
     return repository
 
 
-def test_add_task_adds_new_task(service: TaskService) -> None:
-    service.add_task("Python lernen")
+def test_add_task_adds_new_task(service: TaskService, owner_id: UUID) -> None:
+    service.add_task("Python lernen", owner_id=owner_id)
     tasks = service.get_tasks()
     assert len(tasks) == 1
     assert tasks[0].title == "Python lernen"
@@ -64,27 +71,29 @@ def test_add_task_adds_new_task(service: TaskService) -> None:
     ],
 )
 def test_add_task_raises_empty_title_error_for_invalid_title(
-    service: TaskService, title: str
+    service: TaskService, owner_id: UUID, title: str
 ) -> None:
     with pytest.raises(EmptyTitleError):
-        service.add_task(title)
+        service.add_task(title, owner_id=owner_id)
 
 
-def test_add_task_adds_task_for_valid_title(service: TaskService) -> None:
-    service.add_task("Python lernen")
+def test_add_task_adds_task_for_valid_title(
+    service: TaskService, owner_id: UUID
+) -> None:
+    service.add_task("Python lernen", owner_id=owner_id)
     tasks = service.get_tasks()
     assert len(tasks) == 1
     assert tasks[0].title == "Python lernen"
 
 
-def test_add_task_strips_title(service: TaskService) -> None:
-    service.add_task("   Python lernen  ")
+def test_add_task_strips_title(service: TaskService, owner_id: UUID) -> None:
+    service.add_task("   Python lernen  ", owner_id=owner_id)
     tasks = service.get_tasks()
     assert tasks[0].title == "Python lernen"
 
 
-def test_add_task_with_priority(service: TaskService) -> None:
-    service.add_task("Python lernen", priority=Priority.HIGH)
+def test_add_task_with_priority(service: TaskService, owner_id: UUID) -> None:
+    service.add_task("Python lernen", owner_id=owner_id, priority=Priority.HIGH)
     task = service.get_tasks()[0]
     assert task.priority == Priority.HIGH
 
@@ -101,17 +110,19 @@ def test_remove_task_removes_existing_task(service_with_tasks: TaskService) -> N
 
 
 def test_remove_task_raises_task_not_found_error_for_unknown_id(
-    service: TaskService,
+    service: TaskService, owner_id: UUID
 ) -> None:
-    service.add_task("Python lernen")
+    service.add_task("Python lernen", owner_id=owner_id)
     unknown_id = uuid4()
     with pytest.raises(TaskNotFoundError):
         service.remove_task(unknown_id)
     assert len(service.get_tasks()) == 1
 
 
-def test_complete_task_marks_task_as_completed(service: TaskService) -> None:
-    service.add_task("Python lernen")
+def test_complete_task_marks_task_as_completed(
+    service: TaskService, owner_id: UUID
+) -> None:
+    service.add_task("Python lernen", owner_id=owner_id)
     task = service.get_tasks()[0]
     completed_task = service.complete_task(task.id)
     assert completed_task is not None
@@ -119,9 +130,9 @@ def test_complete_task_marks_task_as_completed(service: TaskService) -> None:
     assert completed_task.id == task.id
 
 
-def test_complete_task_by_id(service: TaskService) -> None:
-    service.add_task("Einkaufen")
-    service.add_task("Python lernen")
+def test_complete_task_by_id(service: TaskService, owner_id: UUID) -> None:
+    service.add_task("Einkaufen", owner_id=owner_id)
+    service.add_task("Python lernen", owner_id=owner_id)
     task_1, task_2 = service.get_tasks()
     completed_task = service.complete_task(task_2.id)
     assert completed_task.id == task_2.id
@@ -130,9 +141,9 @@ def test_complete_task_by_id(service: TaskService) -> None:
 
 
 def test_complete_task_raises_task_not_found_error_for_unknown_id(
-    service: TaskService,
+    service: TaskService, owner_id: UUID
 ) -> None:
-    service.add_task("Python lernen")
+    service.add_task("Python lernen", owner_id=owner_id)
     unknown_id = uuid4()
     with pytest.raises(TaskNotFoundError):
         service.complete_task(unknown_id)
@@ -152,24 +163,24 @@ def test_constructor_creates_empty_task_list(service: TaskService) -> None:
     assert service.get_tasks() == []
 
 
-def test_add_task_with_due_date(service: TaskService) -> None:
+def test_add_task_with_due_date(service: TaskService, owner_id: UUID) -> None:
     due_date = date(2026, 8, 31)
-    service.add_task("Steuererklärung", due_date=due_date)
+    service.add_task("Steuererklärung", owner_id=owner_id, due_date=due_date)
     task = service.get_tasks()[0]
     assert task.due_date == due_date
 
 
-def test_get_tasks_returns_copy(service: TaskService) -> None:
-    service.add_task("Python lernen")
+def test_get_tasks_returns_copy(service: TaskService, owner_id: UUID) -> None:
+    service.add_task("Python lernen", owner_id=owner_id)
     tasks = service.get_tasks()
     tasks.clear()
     assert len(service.get_tasks()) == 1
 
 
-def test_sort_tasks_by_title(service: TaskService) -> None:
-    service.add_task("C")
-    service.add_task("A")
-    service.add_task("B")
+def test_sort_tasks_by_title(service: TaskService, owner_id: UUID) -> None:
+    service.add_task("C", owner_id=owner_id)
+    service.add_task("A", owner_id=owner_id)
+    service.add_task("B", owner_id=owner_id)
     sorted_task_list = service.sort_tasks(SortField.TITLE)
     # titles = [task.title for task in service.get_tasks()]
     assert sorted_task_list[0].title == "A"
@@ -177,20 +188,20 @@ def test_sort_tasks_by_title(service: TaskService) -> None:
     assert sorted_task_list[2].title == "C"
 
 
-def test_sort_task_by_priority(service: TaskService) -> None:
-    service.add_task("Mittlere Aufgabe", priority=Priority.MEDIUM)
-    service.add_task("Niedrige Aufgabe", priority=Priority.LOW)
-    service.add_task("Hohe Aufgabe", priority=Priority.HIGH)
+def test_sort_task_by_priority(service: TaskService, owner_id: UUID) -> None:
+    service.add_task("Mittlere Aufgabe", owner_id=owner_id, priority=Priority.MEDIUM)
+    service.add_task("Niedrige Aufgabe", owner_id=owner_id, priority=Priority.LOW)
+    service.add_task("Hohe Aufgabe", owner_id=owner_id, priority=Priority.HIGH)
     sorted_priority_list = service.sort_tasks(SortField.PRIORITY)
     assert sorted_priority_list[0].priority == Priority.HIGH
     assert sorted_priority_list[1].priority == Priority.MEDIUM
     assert sorted_priority_list[2].priority == Priority.LOW
 
 
-def test_sort_tasks_by_due_date(service: TaskService) -> None:
-    service.add_task("Python lernen", due_date=date(2026, 8, 20))
-    service.add_task("Steuererklärung", due_date=date(2026, 8, 15))
-    service.add_task("Git üben", due_date=date(2026, 8, 10))
+def test_sort_tasks_by_due_date(service: TaskService, owner_id: UUID) -> None:
+    service.add_task("Python lernen", owner_id=owner_id, due_date=date(2026, 8, 20))
+    service.add_task("Steuererklärung", owner_id=owner_id, due_date=date(2026, 8, 15))
+    service.add_task("Git üben", owner_id=owner_id, due_date=date(2026, 8, 10))
 
     sorted_tasks_list = service.sort_tasks(SortField.DUE_DATE)
     assert sorted_tasks_list[0].due_date == date(2026, 8, 10)
@@ -198,28 +209,30 @@ def test_sort_tasks_by_due_date(service: TaskService) -> None:
     assert sorted_tasks_list[2].due_date == date(2026, 8, 20)
 
 
-def test_sort_tasks_by_due_date_without_due_date(service: TaskService) -> None:
-    service.add_task("Python lernen")
-    service.add_task("Steuererklärung", due_date=date(2026, 8, 15))
-    service.add_task("Git üben", due_date=date(2026, 8, 10))
+def test_sort_tasks_by_due_date_without_due_date(
+    service: TaskService, owner_id: UUID
+) -> None:
+    service.add_task("Python lernen", owner_id=owner_id)
+    service.add_task("Steuererklärung", owner_id=owner_id, due_date=date(2026, 8, 15))
+    service.add_task("Git üben", owner_id=owner_id, due_date=date(2026, 8, 10))
     sorted_task_list = service.sort_tasks(SortField.DUE_DATE)
     assert sorted_task_list[0].due_date == date(2026, 8, 10)
     assert sorted_task_list[1].due_date == date(2026, 8, 15)
     assert sorted_task_list[2].title == "Python lernen"
 
 
-def test_filter_completed_tasks(service: TaskService) -> None:
-    service.add_task("Python lernen")
-    service.add_task("Git üben")
+def test_filter_completed_tasks(service: TaskService, owner_id: UUID) -> None:
+    service.add_task("Python lernen", owner_id=owner_id)
+    service.add_task("Git üben", owner_id=owner_id)
     service.get_tasks()[1].complete()
     completed = service.filter_tasks(FilterType.COMPLETED)
     assert len(completed) == 1
     assert completed[0].title == "Git üben"
 
 
-def test_filter_open_tasks(service: TaskService) -> None:
-    service.add_task("Python lernen")
-    service.add_task("Git üben")
+def test_filter_open_tasks(service: TaskService, owner_id: UUID) -> None:
+    service.add_task("Python lernen", owner_id=owner_id)
+    service.add_task("Git üben", owner_id=owner_id)
     task_2 = service.get_tasks()[1]
     service.complete_task(task_2.id)
     open_tasks = service.filter_tasks(FilterType.OPEN)
@@ -228,18 +241,18 @@ def test_filter_open_tasks(service: TaskService) -> None:
     assert open_tasks[0].completed is False
 
 
-def test_filter_all_tasks(service: TaskService) -> None:
-    service.add_task("Python lernen")
-    service.add_task("Git üben")
+def test_filter_all_tasks(service: TaskService, owner_id: UUID) -> None:
+    service.add_task("Python lernen", owner_id=owner_id)
+    service.add_task("Git üben", owner_id=owner_id)
     task_2 = service.get_tasks()[1]
     service.complete_task(task_2.id)
     all_tasks = service.filter_tasks(FilterType.ALL)
     assert len(all_tasks) == 2
 
 
-def test_filter_high_priority_tasks(service: TaskService) -> None:
-    service.add_task("Python lernen", priority=Priority.HIGH)
-    service.add_task("Git üben", priority=Priority.LOW)
+def test_filter_high_priority_tasks(service: TaskService, owner_id: UUID) -> None:
+    service.add_task("Python lernen", owner_id=owner_id, priority=Priority.HIGH)
+    service.add_task("Git üben", owner_id=owner_id, priority=Priority.LOW)
     high_tasks = service.filter_tasks(FilterType.HIGH_PRIORITY)
     assert len(high_tasks) == 1
     assert high_tasks[0].title == "Python lernen"
@@ -264,20 +277,24 @@ def test_filter_high_priority_tasks(service: TaskService) -> None:
 )
 def test_filter_tasks_by_priority(
     service: TaskService,
+    owner_id: UUID,
     filter_type: FilterType,
     priority: Priority,
     expected_title: str,
 ) -> None:
     service.add_task(
         "Hohe Aufgabe",
+        owner_id=owner_id,
         priority=Priority.HIGH,
     )
     service.add_task(
         "Mittlere Aufgabe",
+        owner_id=owner_id,
         priority=Priority.MEDIUM,
     )
     service.add_task(
         "Niedrige Aufgabe",
+        owner_id=owner_id,
         priority=Priority.LOW,
     )
     filtered_tasks = service.filter_tasks(filter_type)
@@ -286,52 +303,54 @@ def test_filter_tasks_by_priority(
     assert filtered_tasks[0].priority == priority
 
 
-def test_filter_tasks_with_due_date(service: TaskService) -> None:
-    service.add_task("Steuererklärung", due_date=date(2026, 8, 31))
-    service.add_task("Python lernen")
+def test_filter_tasks_with_due_date(service: TaskService, owner_id: UUID) -> None:
+    service.add_task("Steuererklärung", owner_id=owner_id, due_date=date(2026, 8, 31))
+    service.add_task("Python lernen", owner_id=owner_id)
     filtered_tasks = service.filter_tasks(FilterType.WITH_DUE_DATE)
     assert len(filtered_tasks) == 1
     assert filtered_tasks[0].title == "Steuererklärung"
     assert filtered_tasks[0].due_date == date(2026, 8, 31)
 
 
-def test_filter_tasks_without_due_date(service: TaskService) -> None:
-    service.add_task("Steuererklärung", due_date=date(2026, 8, 31))
-    service.add_task("Python lernen")
+def test_filter_tasks_without_due_date(service: TaskService, owner_id: UUID) -> None:
+    service.add_task("Steuererklärung", owner_id=owner_id, due_date=date(2026, 8, 31))
+    service.add_task("Python lernen", owner_id=owner_id)
     filtered_tasks = service.filter_tasks(FilterType.WITHOUT_DUE_DATE)
     assert len(filtered_tasks) == 1
     assert filtered_tasks[0].title == "Python lernen"
     assert filtered_tasks[0].due_date is None
 
 
-def test_search_tasks_by_title(service: TaskService) -> None:
-    service.add_task("Python lernen")
-    service.add_task("Git lernen")
-    service.add_task("Python testen")
+def test_search_tasks_by_title(service: TaskService, owner_id: UUID) -> None:
+    service.add_task("Python lernen", owner_id=owner_id)
+    service.add_task("Git lernen", owner_id=owner_id)
+    service.add_task("Python testen", owner_id=owner_id)
     results = service.search_tasks("python")
     assert len(results) == 2
     assert results[0].title == "Python lernen"
     assert results[1].title == "Python testen"
 
 
-def test_search_tasks_is_case_insensitive(service: TaskService) -> None:
-    service.add_task("Python lernen")
+def test_search_tasks_is_case_insensitive(service: TaskService, owner_id: UUID) -> None:
+    service.add_task("Python lernen", owner_id=owner_id)
     results = service.search_tasks("PYTHON")
     assert len(results) == 1
     assert results[0].title == "Python lernen"
 
 
-def test_search_tasks_with_empty_text_returns_all_tasks(service: TaskService) -> None:
-    service.add_task("Python lernen")
-    service.add_task("Git lernen")
+def test_search_tasks_with_empty_text_returns_all_tasks(
+    service: TaskService, owner_id: UUID
+) -> None:
+    service.add_task("Python lernen", owner_id=owner_id)
+    service.add_task("Git lernen", owner_id=owner_id)
     results = service.search_tasks("")
     assert len(results) == 2
 
 
 def test_search_tasks_returns_empty_list_when_nothing_matches(
-    service: TaskService,
+    service: TaskService, owner_id: UUID
 ) -> None:
-    service.add_task("Python lernen")
+    service.add_task("Python lernen", owner_id=owner_id)
     results = service.search_tasks("Docker")
     assert results == []
 
@@ -346,10 +365,10 @@ def test_get_statistics_for_empty_service(service: TaskService) -> None:
     )
 
 
-def test_get_statistics(service: TaskService) -> None:
-    service.add_task("Python lernen", priority=Priority.HIGH)
-    service.add_task("Git üben", priority=Priority.MEDIUM)
-    service.add_task("Docker lernen", priority=Priority.HIGH)
+def test_get_statistics(service: TaskService, owner_id: UUID) -> None:
+    service.add_task("Python lernen", owner_id=owner_id, priority=Priority.HIGH)
+    service.add_task("Git üben", owner_id=owner_id, priority=Priority.MEDIUM)
+    service.add_task("Docker lernen", owner_id=owner_id, priority=Priority.HIGH)
     task_2 = service.get_tasks()[1]
     service.complete_task(task_2.id)
     statistics = service.get_statistics()
