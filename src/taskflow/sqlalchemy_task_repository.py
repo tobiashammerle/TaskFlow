@@ -22,6 +22,7 @@ class SqlalchemyTaskRepository(TaskRepository):
         priority = Priority(task_model.priority)
         return Task(
             task_id=task_model.task_id,
+            owner_id=task_model.owner_id,
             title=task_model.title,
             completed=task_model.completed,
             priority=priority,
@@ -32,6 +33,7 @@ class SqlalchemyTaskRepository(TaskRepository):
         priority = task.priority.value
         task_model = TaskModel(
             task_id=task.id,
+            owner_id=task.owner_id,
             title=task.title,
             completed=task.completed,
             priority=priority,
@@ -41,6 +43,12 @@ class SqlalchemyTaskRepository(TaskRepository):
 
     def get_all(self) -> list[Task]:
         statement = select(TaskModel)
+        result = self.session.execute(statement)
+        task_models = result.scalars().all()
+        return [self._to_domain(task_model) for task_model in task_models]
+
+    def get_all_by_owner(self, owner_id: UUID) -> list[Task]:
+        statement = select(TaskModel).where(TaskModel.owner_id == owner_id)
         result = self.session.execute(statement)
         task_models = result.scalars().all()
         return [self._to_domain(task_model) for task_model in task_models]

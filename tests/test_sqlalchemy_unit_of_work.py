@@ -1,4 +1,5 @@
 from pathlib import Path
+from uuid import uuid4
 
 import pytest
 from sqlalchemy import create_engine
@@ -23,8 +24,9 @@ def uow_setup(tmp_path: Path) -> UowSetup:
 
 
 def test_commit_persists_task(uow_setup: UowSetup) -> None:
+    owner_id = uuid4()
     uow, test_session_factory = uow_setup
-    task = Task(title="Test Task")
+    task = Task(title="Test Task", owner_id=owner_id)
 
     with uow:
         uow.tasks.add(task)
@@ -43,8 +45,9 @@ def test_commit_persists_task(uow_setup: UowSetup) -> None:
 
 
 def test_without_commit_task_is_not_persisted(uow_setup: UowSetup) -> None:
+    owner_id = uuid4()
     uow, test_session_factory = uow_setup
-    task = Task(title="Test Task")
+    task = Task(title="Test Task", owner_id=owner_id)
 
     with uow:
         uow.tasks.add(task)
@@ -60,8 +63,9 @@ def test_without_commit_task_is_not_persisted(uow_setup: UowSetup) -> None:
 
 
 def test_exception_rolls_back_and_is_propagated(uow_setup: UowSetup) -> None:
+    owner_id = uuid4()
     uow, test_session_factory = uow_setup
-    task = Task(title="Test Task")
+    task = Task(title="Test Task", owner_id=owner_id)
     with pytest.raises(RuntimeError):
         with uow:
             uow.tasks.add(task)

@@ -1,5 +1,6 @@
 import logging
 from pathlib import Path
+from uuid import UUID
 
 from dotenv import load_dotenv
 
@@ -13,6 +14,7 @@ from taskflow.logging_config import configure_logging
 from taskflow.unit_of_work_factory import create_unit_of_work
 
 logger = logging.getLogger(__name__)
+LEGACY_CLI_OWNER_ID = UUID("00000000-0000-0000-0000-000000000001")
 
 
 def main() -> None:
@@ -28,7 +30,7 @@ def main() -> None:
     remove_task = RemoveTask(uow)
     get_tasks = GetTasks(uow)
 
-    run_cli(create_task, complete_task, remove_task, get_tasks)
+    run_cli(create_task, complete_task, remove_task, get_tasks, LEGACY_CLI_OWNER_ID)
     logger.info("TaskFlow beendet")
 
 

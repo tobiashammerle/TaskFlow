@@ -37,6 +37,13 @@ class JsonTaskRepository:
             logger.info("%d Aufgaben geladen", len(tasks))
             return tasks
 
+    def get_all_by_owner(self, owner_id: UUID) -> list[Task]:
+        """Lädt alle Aufgaben eines bestimmten Besitzers aus der JSON-Datei."""
+        tasks = self.get_all()
+        owner_tasks = [task for task in tasks if task.owner_id == owner_id]
+        # logger.info("%d Aufgaben für Besitzer %s geladen", len(owner_tasks), owner_id)
+        return owner_tasks
+
     def get_by_id(self, task_id: UUID) -> Task | None:
         """Lädt eine Aufgabe anhand ihrer ID aus der JSON-Datei."""
         tasks = self.get_all()

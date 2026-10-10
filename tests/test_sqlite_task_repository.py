@@ -12,13 +12,17 @@ from taskflow.task import Task
 
 
 def test_save_and_load_tasks(tmp_path: Path) -> None:
+    owner_id = uuid4()
     database_path = tmp_path / "tasks.db"
     repository = SqliteTaskRepository(database_path)
     repository.initialize_database()
     first_task = Task(
-        "Python lernen", priority=Priority.HIGH, due_date=date(2026, 8, 31)
+        "Python lernen",
+        owner_id=owner_id,
+        priority=Priority.HIGH,
+        due_date=date(2026, 8, 31),
     )
-    second_task = Task("Git üben", priority=Priority.LOW)
+    second_task = Task("Git üben", owner_id=owner_id, priority=Priority.LOW)
     second_task.complete()
     repository.save([first_task, second_task])
 
@@ -42,29 +46,32 @@ def test_get_all_returns_empty_list_for_empty_database(tmp_path: Path) -> None:
 
 
 def test_save_overwrites_existing_tasks(tmp_path: Path) -> None:
+    owner_id = uuid4()
     repository = SqliteTaskRepository(tmp_path / "tasks.db")
     repository.initialize_database()
-    repository.save([Task("Alte Aufgabe")])
-    repository.save([Task("Neue Aufgabe")])
+    repository.save([Task("Alte Aufgabe", owner_id=owner_id)])
+    repository.save([Task("Neue Aufgabe", owner_id=owner_id)])
     loaded_tasks = repository.get_all()
     assert len(loaded_tasks) == 1
     assert loaded_tasks[0].title == "Neue Aufgabe"
 
 
 def test_save_and_get_all_preserves_task_id(tmp_path: Path) -> None:
+    owner_id = uuid4()
     repository = SqliteTaskRepository(tmp_path / "tasks.db")
     repository.initialize_database()
-    original = Task("Python lernen")
+    original = Task("Python lernen", owner_id=owner_id)
     repository.save([original])
     loaded_tasks = repository.get_all()
     assert loaded_tasks[0].id == original.id
 
 
 def test_get_by_id_returns_task_with_matching_id(tmp_path: Path) -> None:
+    owner_id = uuid4()
     repository = SqliteTaskRepository(tmp_path / "tasks.db")
     repository.initialize_database()
-    task_1 = Task("Python lernen")
-    task_2 = Task("Git üben")
+    task_1 = Task("Python lernen", owner_id=owner_id)
+    task_2 = Task("Git üben", owner_id=owner_id)
     repository.save([task_1, task_2])
 
     loaded_task = repository.get_by_id(task_2.id)
@@ -73,10 +80,31 @@ def test_get_by_id_returns_task_with_matching_id(tmp_path: Path) -> None:
     assert loaded_task.title == "Git üben"
 
 
-def test_get_by_id_returns_none_for_unknown_id(tmp_path: Path) -> None:
+def test_get_all_by_owner_returns_only_tasks_of_owner(tmp_path: Path) -> None:
+    owner_id_1 = uuid4()
+    owner_id_2 = uuid4()
+    task_1 = Task("Task 1", owner_id=owner_id_1)
+    task_2 = Task("Task 2", owner_id=owner_id_1)
+    task_3 = Task("Task 3", owner_id=owner_id_2)
     repository = SqliteTaskRepository(tmp_path / "tasks.db")
     repository.initialize_database()
-    task = Task("Python lernen")
+    repository.save([task_1, task_2, task_3])
+
+    tasks_owner_1 = repository.get_all_by_owner(owner_id_1)
+    tasks_owner_2 = repository.get_all_by_owner(owner_id_2)
+
+    assert len(tasks_owner_1) == 2
+    assert all(task.owner_id == owner_id_1 for task in tasks_owner_1)
+
+    assert len(tasks_owner_2) == 1
+    assert all(task.owner_id == owner_id_2 for task in tasks_owner_2)
+
+
+def test_get_by_id_returns_none_for_unknown_id(tmp_path: Path) -> None:
+    owner_id = uuid4()
+    repository = SqliteTaskRepository(tmp_path / "tasks.db")
+    repository.initialize_database()
+    task = Task("Python lernen", owner_id=owner_id)
     repository.save([task])
     unknown_id = uuid4()
     loaded_task = repository.get_by_id(unknown_id)
@@ -84,9 +112,10 @@ def test_get_by_id_returns_none_for_unknown_id(tmp_path: Path) -> None:
 
 
 def test_add_persists_single_task(tmp_path: Path) -> None:
+    owner_id = uuid4()
     repository = SqliteTaskRepository(tmp_path / "tasks.db")
     repository.initialize_database()
-    task = Task("Python lernen")
+    task = Task("Python lernen", owner_id=owner_id)
     repository.add(task)
     loaded_task = repository.get_by_id(task.id)
     assert loaded_task is not None
@@ -95,9 +124,10 @@ def test_add_persists_single_task(tmp_path: Path) -> None:
 
 
 def test_update_persists_changes_to_task(tmp_path: Path) -> None:
+    owner_id = uuid4()
     repository = SqliteTaskRepository(tmp_path / "tasks.db")
     repository.initialize_database()
-    task = Task("Python lernen")
+    task = Task("Python lernen", owner_id=owner_id)
     repository.add(task)
 
     # Update the task's title and priority
@@ -113,9 +143,10 @@ def test_update_persists_changes_to_task(tmp_path: Path) -> None:
 
 
 def test_delete_removes_task_from_database(tmp_path: Path) -> None:
+    owner_id = uuid4()
     repository = SqliteTaskRepository(tmp_path / "tasks.db")
     repository.initialize_database()
-    task = Task("Python lernen")
+    task = Task("Python lernen", owner_id=owner_id)
     repository.add(task)
 
     # Delete the task
@@ -126,9 +157,10 @@ def test_delete_removes_task_from_database(tmp_path: Path) -> None:
 
 
 def test_delete_unknown_id_does_not_raise_error(tmp_path: Path) -> None:
+    owner_id = uuid4()
     repository = SqliteTaskRepository(tmp_path / "tasks.db")
     repository.initialize_database()
-    task = Task("Python lernen")
+    task = Task("Python lernen", owner_id=owner_id)
     repository.add(task)
     unknown_id = uuid4()
     repository.delete(unknown_id)  # Should not raise an error

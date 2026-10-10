@@ -11,6 +11,7 @@ class Task:
     def __init__(
         self,
         title: str,
+        owner_id: UUID,
         priority: Priority = Priority.MEDIUM,
         due_date: date | None = None,
         task_id: UUID | None = None,
@@ -20,6 +21,7 @@ class Task:
         if not cleaned_title:
             raise EmptyTitleError("Der Titel darf nicht leer sein. ")
         self.title = cleaned_title
+        self.owner_id = owner_id
         self.id = task_id or uuid4()
         self.completed = completed
         self.priority = priority
@@ -52,6 +54,7 @@ class Task:
         """Wandelt die Aufgabe in ein Dictionary um."""
         return {
             "id": str(self.id),
+            "owner_id": str(self.owner_id),
             "title": self.title,
             "completed": self.completed,
             "priority": self.priority.value,
@@ -71,8 +74,10 @@ class Task:
             else None
         )
         task_id_value = data.get("id")
+        owner_id_value = data["owner_id"]
         task = cls(
             str(data["title"]),
+            owner_id=UUID(str(owner_id_value)),
             priority=priority,
             due_date=due_date,
             task_id=UUID(str(task_id_value)) if task_id_value else None,

@@ -20,3 +20,7 @@ async def duplicate_user_handler(request: Request, exc: Exception):
 
 async def invalid_credentials_handler(request: Request, exc: Exception):
     return JSONResponse(status_code=401, content={"detail": str(exc)})
+
+
+async def invalid_token_handler(request: Request, exc: Exception):
+    return JSONResponse(status_code=401, content={"detail": str(exc)})

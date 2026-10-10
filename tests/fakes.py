@@ -28,6 +28,9 @@ class FakeTaskRepository:
                 self.tasks[i] = task
                 break
 
+    def get_all_by_owner(self, owner_id: UUID) -> list[Task]:
+        return [task for task in self.tasks if task.owner_id == owner_id]
+
     def get_by_id(self, task_id: UUID) -> Task | None:
         for task in self.tasks:
             if task.id == task_id:
@@ -37,7 +40,9 @@ class FakeTaskRepository:
 
 class FakeUnitOfWork:
     def __init__(self, tasks: TaskRepository | None = None) -> None:
-        self.tasks: TaskRepository = tasks or FakeTaskRepository()
+        self.tasks: TaskRepository = (
+            tasks if tasks is not None else FakeTaskRepository()
+        )
         self.committed = False
 
     def __enter__(self) -> "FakeUnitOfWork":
@@ -76,6 +81,12 @@ class FakeUserRepository:
     def get_by_email(self, email: str) -> User | None:
         for user in self.users:
             if user.email == email:
+                return user
+        return None
+
+    def get_by_id(self, user_id: UUID) -> User | None:
+        for user in self.users:
+            if user.id == user_id:
                 return user
         return None
 

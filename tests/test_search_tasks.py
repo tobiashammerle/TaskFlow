@@ -1,9 +1,16 @@
+from uuid import uuid4
+
 from taskflow.application.search_tasks import SearchTasks
 from taskflow.task import Task
 
 
 def test_search_tasks_returns_all_results_from_task_list() -> None:
-    tasks = [Task("Python lernen"), Task("Git lernen"), Task("Python üben")]
+    owner_id = uuid4()
+    tasks = [
+        Task("Python lernen", owner_id=owner_id),
+        Task("Git lernen", owner_id=owner_id),
+        Task("Python üben", owner_id=owner_id),
+    ]
     search_tasks = SearchTasks()
     found_tasks = search_tasks.execute(tasks, "Python")
     assert len(found_tasks) == 2
@@ -14,7 +21,11 @@ def test_search_tasks_returns_all_results_from_task_list() -> None:
 def test_search_tasks_ignores_whitespaces_and_capitalized_letters_in_search_text() -> (
     None
 ):
-    tasks = [Task("Python lernen"), Task("Git lernen")]
+    owner_id = uuid4()
+    tasks = [
+        Task("Python lernen", owner_id=owner_id),
+        Task("Git lernen", owner_id=owner_id),
+    ]
     search_tasks = SearchTasks()
     found_tasks = search_tasks.execute(tasks, "   PYTHON   ")
     assert len(found_tasks) == 1
@@ -22,7 +33,11 @@ def test_search_tasks_ignores_whitespaces_and_capitalized_letters_in_search_text
 
 
 def test_search_tasks_returns_empty_list_when_no_results_found() -> None:
-    tasks = [Task("Python lernen"), Task("Git lernen")]
+    owner_id = uuid4()
+    tasks = [
+        Task("Python lernen", owner_id=owner_id),
+        Task("Git lernen", owner_id=owner_id),
+    ]
     search_tasks = SearchTasks()
     found_tasks = search_tasks.execute(tasks, "Docker")
     assert len(found_tasks) == 0
@@ -30,7 +45,11 @@ def test_search_tasks_returns_empty_list_when_no_results_found() -> None:
 
 
 def test_search_tasks_with_empty_string_returns_complete_task_list() -> None:
-    tasks = [Task("Python lernen"), Task("Git lernen")]
+    owner_id = uuid4()
+    tasks = [
+        Task("Python lernen", owner_id=owner_id),
+        Task("Git lernen", owner_id=owner_id),
+    ]
     search_tasks = SearchTasks()
     found_tasks = search_tasks.execute(tasks, "")
     assert len(found_tasks) == 2
@@ -39,7 +58,11 @@ def test_search_tasks_with_empty_string_returns_complete_task_list() -> None:
 
 
 def test_search_tasks_with_whitespaces_returns_all_tasks() -> None:
-    tasks = [Task("Python lernen"), Task("Git lernen")]
+    owner_id = uuid4()
+    tasks = [
+        Task("Python lernen", owner_id=owner_id),
+        Task("Git lernen", owner_id=owner_id),
+    ]
     search_tasks = SearchTasks()
     found_tasks = search_tasks.execute(tasks, "   ")
     assert len(found_tasks) == 2
@@ -48,7 +71,12 @@ def test_search_tasks_with_whitespaces_returns_all_tasks() -> None:
 
 
 def test_search_tasks_does_not_change_original_task_list() -> None:
-    tasks = [Task("Python lernen"), Task("Git lernen"), Task("Python üben")]
+    owner_id = uuid4()
+    tasks = [
+        Task("Python lernen", owner_id=owner_id),
+        Task("Git lernen", owner_id=owner_id),
+        Task("Python üben", owner_id=owner_id),
+    ]
     search_tasks = SearchTasks()
     search_tasks.execute(tasks, "Python")
     assert len(tasks) == 3

@@ -9,79 +9,91 @@ from taskflow.task import Task
 
 
 def test_new_tasks_get_different_ids():
-    task1 = Task("Python lernen")
-    task2 = Task("Git üben")
+    owner_id = uuid4()
+    task1 = Task("Python lernen", owner_id=owner_id)
+    task2 = Task("Git üben", owner_id=owner_id)
     assert task1.id != task2.id
     assert isinstance(task1.id, UUID)
     assert isinstance(task2.id, UUID)
 
 
 def test_task_keeps_provided_id():
+    owner_id = uuid4()
     provided_id = uuid4()
-    task = Task("Python lernen", task_id=provided_id)
+    task = Task("Python lernen", owner_id=owner_id, task_id=provided_id)
     assert task.id == provided_id
 
 
 def test_complete_marks_task_as_completed() -> None:
-    task = Task("Python lernen")
+    task = Task("Python lernen", owner_id=uuid4())
     task.complete()
     assert task.completed is True
 
 
 def test_str_returns_open_task() -> None:
-    task = Task("Python lernen")
+    task = Task("Python lernen", owner_id=uuid4())
     assert str(task) == "[ ] Python lernen - MEDIUM"
 
 
 def test_str_returns_completed_task() -> None:
-    task = Task("Python lernen")
+    task = Task("Python lernen", owner_id=uuid4())
     task.complete()
     assert str(task) == "[\u2713] Python lernen - MEDIUM"
 
 
 def test_str_includes_custom_priority() -> None:
-    task = Task("Python lernen", priority=Priority.HIGH)
+    task = Task("Python lernen", owner_id=uuid4(), priority=Priority.HIGH)
     assert str(task) == "[ ] Python lernen - HIGH"
 
 
 def test_task_stores_cleaned_title() -> None:
-    task = Task("   Python lernen   ")
+    task = Task("   Python lernen   ", owner_id=uuid4())
     assert task.title == "Python lernen"
 
 
 def test_empty_title_raises_empty_title_error() -> None:
     with pytest.raises(EmptyTitleError):
-        Task("    ")
+        Task("    ", owner_id=uuid4())
 
 
 def test_task_has_medium_priority_by_default() -> None:
-    task = Task("Python lernen")
+    task = Task("Python lernen", owner_id=uuid4())
     assert task.priority == Priority.MEDIUM
 
 
 def test_task_has_no_due_date_by_default() -> None:
-    task = Task("Python lernen")
+    task = Task("Python lernen", owner_id=uuid4())
     assert task.due_date is None
 
 
 def test_task_accepts_due_date() -> None:
     due_date = date(2026, 8, 31)
-    task = Task("Steuererklärung", due_date=due_date)
+    task = Task("Steuererklärung", owner_id=uuid4(), due_date=due_date)
     assert task.due_date == due_date
 
 
 def test_str_returns_task_without_due_date() -> None:
-    task = Task("Python lernen")
+    task = Task("Python lernen", owner_id=uuid4())
     assert str(task) == "[ ] Python lernen - MEDIUM"
 
 
 def test_str_includes_due_date() -> None:
-    task = Task("Steuererklärung", priority=Priority.HIGH, due_date=date(2026, 8, 31))
+    task = Task(
+        "Steuererklärung",
+        owner_id=uuid4(),
+        priority=Priority.HIGH,
+        due_date=date(2026, 8, 31),
+    )
     assert str(task) == "[ ] Steuererklärung - HIGH - fällig: 2026-08-31"
 
 
 def test_repr_returns_developer_representation() -> None:
-    task = Task("Python lernen", priority=Priority.HIGH, due_date=date(2026, 8, 31))
+    task = Task(
+        "Python lernen",
+        owner_id=uuid4(),
+        priority=Priority.HIGH,
+        due_date=date(2026, 8, 31),
+    )
     assert repr(task) == (
         "Task("
         "title='Python lernen',"
@@ -93,9 +105,16 @@ def test_repr_returns_developer_representation() -> None:
 
 
 def test_to_dict_returns_expected_dictionary() -> None:
-    task = Task("Python lernen", priority=Priority.HIGH, due_date=date(2026, 8, 31))
+    owner_id = uuid4()
+    task = Task(
+        "Python lernen",
+        owner_id=owner_id,
+        priority=Priority.HIGH,
+        due_date=date(2026, 8, 31),
+    )
     assert task.to_dict() == {
         "id": str(task.id),
+        "owner_id": str(owner_id),
         "title": "Python lernen",
         "completed": False,
         "priority": "HIGH",
@@ -104,21 +123,24 @@ def test_to_dict_returns_expected_dictionary() -> None:
 
 
 def test_to_dict_and_from_dict_preserve_id():
-    original = Task("Python lernen")
+    original = Task("Python lernen", owner_id=uuid4())
     data = original.to_dict()
     restored = Task.from_dict(data)
     assert restored.id == original.id
 
 
 def test_from_dict_creates_task() -> None:
+    owner_id = uuid4()
     data = {
         "title": "Python lernen",
+        "owner_id": str(owner_id),
         "completed": True,
         "priority": "HIGH",
         "due_date": "2026-08-31",
     }
     task = Task.from_dict(data)
     assert task.title == "Python lernen"
+    assert task.owner_id == owner_id
     assert task.completed is True
     assert task.priority == Priority.HIGH
     assert task.due_date == date(2026, 8, 31)

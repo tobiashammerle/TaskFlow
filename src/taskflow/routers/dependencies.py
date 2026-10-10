@@ -1,11 +1,13 @@
 from pathlib import Path
 
 from fastapi import Depends
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from taskflow.application.authenticate_user import AuthenticateUser
 from taskflow.application.complete_task import CompleteTask
 from taskflow.application.create_task import CreateTask
 from taskflow.application.filter_tasks import FilterTasks
+from taskflow.application.get_current_user import GetCurrentUser
 from taskflow.application.get_tasks import GetTasks
 from taskflow.application.login_user import LoginUser
 from taskflow.application.register_user import RegisterUser
@@ -27,7 +29,10 @@ from taskflow.task_repository import TaskRepository
 from taskflow.token_service import TokenService
 from taskflow.unit_of_work import UnitOfWork
 from taskflow.unit_of_work_factory import create_unit_of_work
+from taskflow.user import User
 from taskflow.user_unit_of_work import UserUnitOfWork
+
+bearer_scheme = HTTPBearer()
 
 
 def get_repository() -> TaskRepository:
@@ -111,3 +116,17 @@ def get_login_user_use_case(
     token_service: TokenService = Depends(get_token_service),
 ) -> LoginUser:
     return LoginUser(authenticate_user, token_service)
+
+
+def get_current_user_use_case(
+    uow: UserUnitOfWork = Depends(get_unit_of_work),
+    token_service: TokenService = Depends(get_token_service),
+) -> GetCurrentUser:
+    return GetCurrentUser(uow, token_service)
+
+
+def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
+    use_case: GetCurrentUser = Depends(get_current_user_use_case),
+) -> User:
+    return use_case.execute(credentials.credentials)
