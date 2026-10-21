@@ -2,14 +2,18 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
+from taskflow.application.async_complete_task import AsyncCompleteTask
+from taskflow.application.async_create_task import AsyncCreateTask
+from taskflow.application.async_get_tasks import AsyncGetTasks
+from taskflow.application.async_remove_task import AsyncRemoveTask
 from taskflow.filter_type import FilterType
 from taskflow.routers.dependencies import (
-    get_complete_task_use_case,
-    get_create_task_use_case,
+    get_async_complete_task_use_case,
+    get_async_create_task_use_case,
+    get_async_get_tasks_use_case,
+    get_async_remove_task_use_case,
     get_current_user,
     get_filter_tasks_use_case,
-    get_get_tasks_use_case,
-    get_remove_task_use_case,
     get_search_tasks_use_case,
     get_sort_tasks_use_case,
 )
@@ -21,12 +25,12 @@ router = APIRouter(prefix="/tasks", dependencies=[Depends(get_current_user)])
 
 
 @router.post("", response_model=TaskResponse, status_code=201)
-def create_task(
+async def create_task(
     request: CreateTaskRequest,
     current_user: User = Depends(get_current_user),
-    use_case=Depends(get_create_task_use_case),
+    use_case: AsyncCreateTask = Depends(get_async_create_task_use_case),
 ):
-    task = use_case.execute(
+    task = await use_case.execute(
         title=request.title,
         owner_id=current_user.id,
         priority=request.priority,
@@ -36,26 +40,26 @@ def create_task(
 
 
 @router.delete("/{task_id}", status_code=204)
-def delete_task(
+async def delete_task(
     task_id: UUID,
     current_user: User = Depends(get_current_user),
-    use_case=Depends(get_remove_task_use_case),
+    use_case: AsyncRemoveTask = Depends(get_async_remove_task_use_case),
 ):
-    use_case.execute(task_id, owner_id=current_user.id)
+    await use_case.execute(task_id, owner_id=current_user.id)
 
 
 @router.patch("/{task_id}/complete", response_model=TaskResponse)
-def complete_task(
+async def complete_task(
     task_id: UUID,
     current_user: User = Depends(get_current_user),
-    use_case=Depends(get_complete_task_use_case),
+    use_case: AsyncCompleteTask = Depends(get_async_complete_task_use_case),
 ):
-    task = use_case.execute(task_id, owner_id=current_user.id)
+    task = await use_case.execute(task_id, owner_id=current_user.id)
     return task
 
 
 @router.get("", response_model=list[TaskResponse])
-def get_tasks(
+async def get_tasks(
     search: str | None = None,
     filter: FilterType | None = None,
     sort: SortField | None = None,
@@ -63,14 +67,14 @@ def get_tasks(
     limit: int | None = Query(default=None, ge=0),
     offset: int | None = Query(default=None, ge=0),
     current_user: User = Depends(get_current_user),
-    get_tasks_use_case=Depends(get_get_tasks_use_case),
+    get_tasks_use_case: AsyncGetTasks = Depends(get_async_get_tasks_use_case),
     search_tasks_use_case=Depends(get_search_tasks_use_case),
     filter_tasks_use_case=Depends(get_filter_tasks_use_case),
     sort_tasks_use_case=Depends(get_sort_tasks_use_case),
 ):
     if reverse and sort is None:
         raise HTTPException(status_code=400, detail="reverse requires sort")
-    tasks = get_tasks_use_case.execute(owner_id=current_user.id)
+    tasks = await get_tasks_use_case.execute(owner_id=current_user.id)
     if search is not None:
         tasks = search_tasks_use_case.execute(tasks, search)
     if filter is not None:

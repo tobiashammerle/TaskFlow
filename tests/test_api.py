@@ -5,12 +5,13 @@ from fastapi.testclient import TestClient
 
 from taskflow.api import app
 from taskflow.routers.dependencies import (
+    get_async_unit_of_work,
     get_current_user,
     get_repository,
 )
 from taskflow.task import Task
 from taskflow.user import User
-from tests.fakes import FakeTaskRepository
+from tests.fakes import FakeAsyncTaskRepository, FakeAsyncUnitOfWork, FakeTaskRepository
 
 V1_TASKS_URL = "/api/v1/tasks"
 
@@ -21,20 +22,33 @@ def test_repository() -> FakeTaskRepository:
 
 
 @pytest.fixture
+def test_async_repository() -> FakeAsyncTaskRepository:
+    return FakeAsyncTaskRepository()
+
+
+@pytest.fixture
 def current_user() -> User:
     return User(email="test@example.com", password_hash="hashed-password")
 
 
 @pytest.fixture
-def client(test_repository: FakeTaskRepository, current_user: User):
+def client(
+    test_repository: FakeTaskRepository,
+    test_async_repository: FakeAsyncTaskRepository,
+    current_user: User,
+):
     def override_get_repository():
         return test_repository
 
     def override_get_current_user() -> User:
         return current_user
 
+    def override_get_async_unit_of_work():
+        return FakeAsyncUnitOfWork(test_async_repository)
+
     app.dependency_overrides[get_repository] = override_get_repository
     app.dependency_overrides[get_current_user] = override_get_current_user
+    app.dependency_overrides[get_async_unit_of_work] = override_get_async_unit_of_work
 
     yield TestClient(app)
     app.dependency_overrides.clear()
@@ -155,12 +169,13 @@ def test_get_tasks_returns_created_task(client):
 
 
 def test_get_tasks_returns_only_tasks_of_current_user(
-    client, test_repository, current_user
+    client,
+    test_async_repository: FakeAsyncTaskRepository,
+    current_user: User,
 ):
     own_task = Task("Eigene Aufgabe", owner_id=current_user.id)
     foreign_task = Task("Fremde Aufgabe", owner_id=uuid4())
-    test_repository.add(own_task)
-    test_repository.add(foreign_task)
+    test_async_repository.tasks.extend([own_task, foreign_task])
     response = client.get(V1_TASKS_URL)
     assert response.status_code == 200
     assert len(response.json()) == 1

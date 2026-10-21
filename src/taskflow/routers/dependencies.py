@@ -3,6 +3,10 @@ from pathlib import Path
 from fastapi import Depends
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
+from taskflow.application.async_complete_task import AsyncCompleteTask
+from taskflow.application.async_create_task import AsyncCreateTask
+from taskflow.application.async_get_tasks import AsyncGetTasks
+from taskflow.application.async_remove_task import AsyncRemoveTask
 from taskflow.application.authenticate_user import AuthenticateUser
 from taskflow.application.complete_task import CompleteTask
 from taskflow.application.create_task import CreateTask
@@ -15,6 +19,8 @@ from taskflow.application.remove_task import RemoveTask
 from taskflow.application.search_tasks import SearchTasks
 from taskflow.application.sort_tasks import SortTasks
 from taskflow.argon2_password_hasher import Argon2PasswordHasher
+from taskflow.async_sqlalchemy_unit_of_work import AsyncSqlalchemyUnitOfWork
+from taskflow.async_unit_of_work import AsyncUnitOfWork
 from taskflow.config import (
     load_access_token_expire_minutes,
     load_jwt_secret,
@@ -50,10 +56,26 @@ def get_unit_of_work(
     return RepositoryUnitOfWork(repository)
 
 
+def get_async_unit_of_work() -> AsyncUnitOfWork:
+    return AsyncSqlalchemyUnitOfWork()
+
+
+def get_async_create_task_use_case(
+    uow: AsyncUnitOfWork = Depends(get_async_unit_of_work),
+) -> AsyncCreateTask:
+    return AsyncCreateTask(uow)
+
+
 def get_create_task_use_case(
     uow: UnitOfWork = Depends(get_unit_of_work),
 ) -> CreateTask:
     return CreateTask(uow)
+
+
+def get_async_remove_task_use_case(
+    uow: AsyncUnitOfWork = Depends(get_async_unit_of_work),
+) -> AsyncRemoveTask:
+    return AsyncRemoveTask(uow)
 
 
 def get_remove_task_use_case(
@@ -62,10 +84,22 @@ def get_remove_task_use_case(
     return RemoveTask(uow)
 
 
+def get_async_get_tasks_use_case(
+    uow: AsyncUnitOfWork = Depends(get_async_unit_of_work),
+) -> AsyncGetTasks:
+    return AsyncGetTasks(uow)
+
+
 def get_get_tasks_use_case(
     uow: UnitOfWork = Depends(get_unit_of_work),
 ) -> GetTasks:
     return GetTasks(uow)
+
+
+def get_async_complete_task_use_case(
+    uow: AsyncUnitOfWork = Depends(get_async_unit_of_work),
+) -> AsyncCompleteTask:
+    return AsyncCompleteTask(uow)
 
 
 def get_complete_task_use_case(

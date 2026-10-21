@@ -38,6 +38,55 @@ class FakeTaskRepository:
         return None
 
 
+class FakeAsyncTaskRepository:
+    def __init__(self) -> None:
+        self.tasks: list[Task] = []
+
+    async def save(self, tasks: list[Task]) -> None:
+        self.tasks = tasks.copy()
+
+    async def get_all(self) -> list[Task]:
+        return self.tasks.copy()
+
+    async def get_all_by_owner(self, owner_id: UUID) -> list[Task]:
+        return [task for task in self.tasks if task.owner_id == owner_id]
+
+    async def add(self, task: Task) -> None:
+        self.tasks.append(task)
+
+    async def delete(self, task_id: UUID) -> None:
+        self.tasks = [task for task in self.tasks if task.id != task_id]
+
+    async def update(self, task: Task) -> None:
+        for i, existing_task in enumerate(self.tasks):
+            if existing_task.id == task.id:
+                self.tasks[i] = task
+                break
+
+    async def get_by_id(self, task_id: UUID) -> Task | None:
+        for task in self.tasks:
+            if task.id == task_id:
+                return task
+        return None
+
+
+class FakeAsyncUnitOfWork:
+    def __init__(self, repository: FakeAsyncTaskRepository) -> None:
+        self.tasks = repository
+
+    async def __aenter__(self) -> "FakeAsyncUnitOfWork":
+        return self
+
+    async def __aexit__(self, exc_type, exc_value, traceback):
+        pass
+
+    async def commit(self) -> None:
+        pass
+
+    async def rollback(self) -> None:
+        pass
+
+
 class FakeUnitOfWork:
     def __init__(self, tasks: TaskRepository | None = None) -> None:
         self.tasks: TaskRepository = (
