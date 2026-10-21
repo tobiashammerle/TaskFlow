@@ -20,3 +20,4 @@ repos:
           - alembic
           - argon2-cffi
           - PyJWT
+          - pytest-asyncio

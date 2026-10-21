@@ -1,14 +1,24 @@
 import os
 
 from sqlalchemy import create_engine
+from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
 
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///task.db")
+SYNC_BASE_URL = os.getenv(
+    "SYNC_DATABASE_URL",
+    "sqlite:///task.db",
+)
+
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///task.db")
 
 
-engine = create_engine(DATABASE_URL)
+sync_engine = create_engine(SYNC_BASE_URL)
+SyncSessionFactory = sessionmaker(bind=sync_engine)
 
-SessionFactory = sessionmaker(bind=engine)
+
+engine = create_async_engine(DATABASE_URL)
+
+SessionFactory = async_sessionmaker(bind=engine, expire_on_commit=False)
 
 
 class Base(DeclarativeBase):

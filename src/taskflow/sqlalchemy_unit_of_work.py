@@ -3,13 +3,15 @@ from typing import Self
 
 from sqlalchemy.orm import Session, sessionmaker
 
-from taskflow.database import SessionFactory
+from taskflow.database import SyncSessionFactory
 from taskflow.sqlalchemy_task_repository import SqlalchemyTaskRepository
 from taskflow.sqlalchemy_user_repository import SqlalchemyUserRepository
 
 
 class SqlalchemyUnitOfWork:
-    def __init__(self, session_factory: sessionmaker[Session] = SessionFactory) -> None:
+    def __init__(
+        self, session_factory: sessionmaker[Session] = SyncSessionFactory
+    ) -> None:
         self.session_factory = session_factory
         self.session: Session | None = None
         self._tasks: SqlalchemyTaskRepository | None = None
