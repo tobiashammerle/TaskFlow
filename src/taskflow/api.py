@@ -34,3 +34,8 @@ app.include_router(v1_router)
 @app.get("/")
 def root():
     return {"message": "TaskFlow API läuft"}
+
+
+@app.get("/health")
+def health():
+    return {"status": "ok"}
