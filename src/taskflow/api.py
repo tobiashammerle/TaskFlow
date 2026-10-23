@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI, HTTPException
 
 from taskflow.exception_handlers import (
     duplicate_task_handler,
@@ -16,6 +16,7 @@ from taskflow.exceptions import (
     InvalidTokenError,
     TaskNotFoundError,
 )
+from taskflow.readiness import check_database_readiness
 from taskflow.routers.v1 import router as v1_router
 
 app = FastAPI()
@@ -38,4 +39,11 @@ def root():
 
 @app.get("/health")
 def health():
+    return {"status": "ok"}
+
+
+@app.get("/ready")
+def readiness(ready: bool = Depends(check_database_readiness)):
+    if not ready:
+        raise HTTPException(status_code=503)
     return {"status": "ok"}
