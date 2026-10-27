@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: taskflow
+
+spec:
+  replicas: 1
+
+  selector:
+    matchLabels:
+      app: taskflow
+
+  template:
+    metadata:
+      labels:
+        app: taskflow
+    spec:
+      containers:
+        - name: taskflow
+          image: taskflow:1.0
+          imagePullPolicy: Never
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: taskflow-config
+                  key: DATABASE_URL
+            - name: SYNC_DATABASE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: taskflow-config
+                  key: SYNC_DATABASE_URL
+            - name: DEMO_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: taskflow-demo-secret
+                  key: DEMO_TOKEN
+          ports:
+            - containerPort: 8000
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            failureThreshold: 3
+          volumeMounts:
+            - name: taskflow-storage
+              mountPath: /app/data
+      volumes:
+        - name: taskflow-storage
+          persistentVolumeClaim:
+            claimName: taskflow-data
