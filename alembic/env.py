@@ -11,7 +11,10 @@ from taskflow.user_model import UserModel  # noqa: F401
 # access to the values within the .ini file in use.
 config = context.config
 if config.get_main_option("sqlalchemy.url") is None:
-    config.set_main_option("sqlalchemy.url", DATABASE_URL)
+    config.set_main_option(
+        "sqlalchemy.url",
+        DATABASE_URL.replace("sqlite+aiosqlite://", "sqlite://", 1),
+    )
 
 
 # Interpret the config file for Python logging.

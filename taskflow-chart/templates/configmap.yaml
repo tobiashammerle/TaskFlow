@@ -7,4 +7,4 @@ data:
   SYNC_DATABASE_URL: "sqlite:////app/data/task.db"
   settings.ini: |
     [repository]
-    type = sqlite
+    type = sqlalchemy
