@@ -43,6 +43,8 @@ spec:
           envFrom:
             - configMapRef:
                 name: taskflow-config
+            - secretRef:
+                name: taskflow-jwt-secret
           ports:
             - name: http
               containerPort: {{ .Values.service.port }}

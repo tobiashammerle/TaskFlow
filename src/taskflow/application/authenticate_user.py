@@ -13,9 +13,10 @@ class AuthenticateUser:
 
     def execute(self, email: str, password: str) -> User:
         normalized_email = email.strip().lower()
-        user = self._unit_of_work.users.get_by_email(normalized_email)
-        if user is None:
-            raise InvalidCredentialsError("Ungültige Zugangsdaten.")
-        if not self._password_hasher.verify(password, user.password_hash):
-            raise InvalidCredentialsError("Ungültige Zugangsdaten.")
-        return user
+        with self._unit_of_work:
+            user = self._unit_of_work.users.get_by_email(normalized_email)
+            if user is None:
+                raise InvalidCredentialsError("Ungültige Zugangsdaten.")
+            if not self._password_hasher.verify(password, user.password_hash):
+                raise InvalidCredentialsError("Ungültige Zugangsdaten.")
+            return user
