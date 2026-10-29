@@ -29,8 +29,6 @@ from taskflow.config import (
 from taskflow.jwt_token_service import JWTTokenService
 from taskflow.password_hasher import PasswordHasher
 from taskflow.repository_factory import create_repository
-from taskflow.repository_type import RepositoryType
-from taskflow.repository_unit_of_work import RepositoryUnitOfWork
 from taskflow.task_repository import TaskRepository
 from taskflow.token_service import TokenService
 from taskflow.unit_of_work import UnitOfWork
@@ -47,13 +45,9 @@ def get_repository() -> TaskRepository:
     return repository
 
 
-def get_unit_of_work(
-    repository: TaskRepository = Depends(get_repository),
-) -> UnitOfWork:
+def get_unit_of_work() -> UnitOfWork:
     repository_type = load_repository_type(Path("settings.ini"))
-    if repository_type == RepositoryType.SQLALCHEMY:
-        return create_unit_of_work(repository_type)
-    return RepositoryUnitOfWork(repository)
+    return create_unit_of_work(repository_type)
 
 
 def get_async_unit_of_work() -> AsyncUnitOfWork:
