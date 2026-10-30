@@ -18,6 +18,7 @@ dependencies = [
     "PyJWT",
     "aiosqlite>=0.22",
     "pytest-asyncio>=1.4",
+    "prometheus-fastapi-instrumentator>=8.1,<9",
 ]
 
 [project.optional-dependencies]
