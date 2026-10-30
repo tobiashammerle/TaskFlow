@@ -1,4 +1,5 @@
 from fastapi import Depends, FastAPI, HTTPException
+from prometheus_fastapi_instrumentator import Instrumentator
 
 from taskflow.exception_handlers import (
     duplicate_task_handler,
@@ -20,7 +21,7 @@ from taskflow.readiness import check_database_readiness
 from taskflow.routers.v1 import router as v1_router
 
 app = FastAPI()
-
+Instrumentator().instrument(app).expose(app)
 
 app.add_exception_handler(TaskNotFoundError, task_not_found_handler)
 app.add_exception_handler(DuplicateTaskError, duplicate_task_handler)

@@ -15,6 +15,7 @@ repos:
           - pytest
           - python-dotenv
           - fastapi
+          - prometheus-fastapi-instrumentator>=8.1,<9
           - pydantic
           - sqlalchemy
           - alembic

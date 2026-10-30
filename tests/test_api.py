@@ -598,3 +598,9 @@ def test_limit_larger_than_remaining_tasks_returns_remaining_tasks(client):
     assert len(data) == 2
     assert data[0]["title"] == "D"
     assert data[1]["title"] == "E"
+
+
+def test_metrics_endpoint_returns_200(client: TestClient) -> None:
+    response = client.get("/metrics")
+    assert response.status_code == 200
+    assert "python_info" in response.text
