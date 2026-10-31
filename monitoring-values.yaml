@@ -1,4 +1,68 @@
 grafana:
+  alerting:
+    rules.yaml:
+      apiVersion: 1
+      groups:
+        - orgId: 1
+          name: taskflow-alerts
+          folder: TaskFlow Alerts
+          interval: 1m
+          rules:
+            - uid: eg2vhz4gajchsf
+              title: TaskFlow - Backend nicht erreichbar
+              condition: C
+              data:
+                - refId: A
+                  relativeTimeRange:
+                    from: 600
+                    to: 0
+                  datasourceUid: prometheus
+                  model:
+                    editorMode: code
+                    expr: max(up{job="taskflow"}) or vector(0)
+                    instant: true
+                    intervalMs: 1000
+                    legendFormat: __auto
+                    maxDataPoints: 43200
+                    range: false
+                    refId: A
+                - refId: C
+                  queryType: expression
+                  datasourceUid: __expr__
+                  model:
+                    conditions:
+                        - evaluator:
+                            params:
+                                - 1
+                            type: lt
+                          operator:
+                            type: and
+                          query:
+                            params:
+                                - C
+                          reducer:
+                            params: []
+                            type: last
+                          type: query
+                    datasource:
+                        type: __expr__
+                        uid: __expr__
+                    expression: A
+                    intervalMs: 1000
+                    maxDataPoints: 43200
+                    refId: C
+                    type: threshold
+              noDataState: NoData
+              execErrState: Error
+              for: 2m
+              annotations:
+                summary: 'TaskFlow-Alarm: Das Backend ist seit mindestens 2 Minuten nicht erreichbar.'
+              labels: {}
+              isPaused: false
+              notification_settings:
+                receiver: taskflow-email-alerts
+
+
   persistence:
     enabled: true
     type: pvc
@@ -15,4 +79,4 @@ grafana:
       from_address: $__env{GF_SMTP_USER}
       from_name: TaskFlow Monitoring
       startTLS_policy: MandatoryStartTLS
-      skip_verify: true
+      skip_verify: false
