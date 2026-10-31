@@ -1,0 +1,18 @@
+grafana:
+  persistence:
+    enabled: true
+    type: pvc
+    size: 1Gi
+    
+  envFromSecret: grafana-smtp
+
+  grafana.ini:
+    smtp:
+      enabled: true
+      host: mail.gmx.net:587
+      user: $__env{GF_SMTP_USER}
+      password: $__env{GF_SMTP_PASSWORD}
+      from_address: $__env{GF_SMTP_USER}
+      from_name: TaskFlow Monitoring
+      startTLS_policy: MandatoryStartTLS
+      skip_verify: true
