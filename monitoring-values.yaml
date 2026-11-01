@@ -80,3 +80,21 @@ grafana:
       from_name: TaskFlow Monitoring
       startTLS_policy: MandatoryStartTLS
       skip_verify: false
+
+  dashboardProviders:
+    dashboardproviders.yaml:
+      apiVersion: 1
+      providers:
+        - name: TaskFlow
+          orgId: 1
+          folder: TaskFlow
+          type: file
+          disableDeletion: false
+          editable: true
+          options:
+            path: /var/lib/grafana/dashboards/TaskFlow
+  
+  dashboards:
+    taskflow:
+      taskflow-backend-monitoring:
+        file: taskflow-dashboard.json
