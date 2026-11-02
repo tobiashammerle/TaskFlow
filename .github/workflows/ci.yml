@@ -55,6 +55,5 @@ jobs:
         - name: Push Docker image
           if: github.event_name == 'push' && github.ref == 'refs/heads/main'
           run: |
-            docker build -t ghcr.io/${GITHUB_REPOSITORY,,}:latest .
             docker push ghcr.io/${GITHUB_REPOSITORY,,}:latest
 
