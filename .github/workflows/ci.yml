@@ -76,12 +76,5 @@ jobs:
 
       - name: Deploy TaskFlow to Kubernetes
         shell: powershell
-        run: |
-            helm upgrade --install taskflow ./taskflow-chart `
-              --namespace default `
-              --set image.repository=ghcr.io/tobiashammerle/taskflow `
-              --set image.tag=latest `
-              --set image.pullPolicy=Always
-              --wait `
-              --timeout 5m
+        run: helm upgrade --install taskflow ./taskflow-chart --namespace default --set image.repository=ghcr.io/tobiashammerle/taskflow --set image.tag=latest --set image.pullPolicy=Always --wait --timeout 5m
         
