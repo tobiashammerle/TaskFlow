@@ -63,7 +63,25 @@ jobs:
     runs-on: [self-hosted, windows, X64]
 
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Verify Helm
         shell: powershell
         run: helm version --short
+      
+      - name: Verify Kubernetes connection
+        shell: powershell
+        run: kubectl get nodes
+
+      - name: Deploy TaskFlow to Kubernetes
+        shell: powershell
+        run: |
+            helm upgrade --install taskflow ./taskflow-chart `
+              --namespace default `
+              --set image.repository=ghcr.io/tobiashammerle/taskflow `
+              --set image.tag=latest `
+              --set image.pullPolicy=Always
+              --wait `
+              --timeout 5m
         
