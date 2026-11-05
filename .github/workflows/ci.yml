@@ -64,6 +64,6 @@ jobs:
 
     steps:
       - name: Test self-hosted runner
-        shell: pwsh
+        shell: powershell
         run: Write-Output "TaskFlow deployment runner is working"
         
