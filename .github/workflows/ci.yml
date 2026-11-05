@@ -63,7 +63,7 @@ jobs:
     runs-on: [self-hosted, windows, X64]
 
     steps:
-      - name: Test self-hosted runner
+      - name: Verify Helm
         shell: powershell
-        run: Write-Output "TaskFlow deployment runner is working"
+        run: helm version --short
         
