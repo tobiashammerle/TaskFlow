@@ -50,12 +50,12 @@ jobs:
             password: ${{ secrets.GITHUB_TOKEN }}
 
         - name: Build Docker image
-          run: docker build -t ghcr.io/${GITHUB_REPOSITORY,,}:latest .
+          run: docker build -t ghcr.io/${GITHUB_REPOSITORY,,}:${GITHUB_SHA} .
 
         - name: Push Docker image
           if: github.event_name == 'push' && github.ref == 'refs/heads/main'
           run: |
-            docker push ghcr.io/${GITHUB_REPOSITORY,,}:latest
+            docker push ghcr.io/${GITHUB_REPOSITORY,,}:${GITHUB_SHA}
   
   deploy:
     needs: docker-build
@@ -76,12 +76,8 @@ jobs:
 
       - name: Deploy TaskFlow to Kubernetes
         shell: powershell
-        run: helm upgrade --install taskflow ./taskflow-chart --namespace default --set image.repository=ghcr.io/tobiashammerle/taskflow --set image.tag=latest --set image.pullPolicy=Always --wait --timeout 5m
+        run: helm upgrade --install taskflow ./taskflow-chart --namespace default --set image.repository=ghcr.io/tobiashammerle/taskflow --set image.tag=${{ github.sha }} --set image.pullPolicy=Always --wait --timeout 5m
         
-      - name: Restart TaskFlow Deployment
-        shell: powershell
-        run: kubectl rollout restart deployment/taskflow
-
       - name: Wait for TaskFlow rollout
         shell: powershell
         run: kubectl rollout status deployment/taskflow --timeout=300s
