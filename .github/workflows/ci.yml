@@ -78,3 +78,10 @@ jobs:
         shell: powershell
         run: helm upgrade --install taskflow ./taskflow-chart --namespace default --set image.repository=ghcr.io/tobiashammerle/taskflow --set image.tag=latest --set image.pullPolicy=Always --wait --timeout 5m
         
+      - name: Restart TaskFlow Deployment
+        shell: powershell
+        run: kubectl rollout restart deployment/taskflow
+
+      - name: Wait for TaskFlow rollout
+        shell: powershell
+        run: kubectl rollout status deployment/taskflow --timeout=300s
