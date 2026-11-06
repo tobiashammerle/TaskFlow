@@ -2,7 +2,11 @@ from pathlib import Path
 
 import pytest
 
-from taskflow.config import load_repository_type
+from taskflow.config import (
+    load_access_token_expire_minutes,
+    load_jwt_secret,
+    load_repository_type,
+)
 from taskflow.exceptions import ConfigurationError
 from taskflow.repository_type import RepositoryType
 
@@ -45,3 +49,25 @@ def test_load_repository_type_returns_sqlalchemy(tmp_path: Path) -> None:
 
     # Assert
     assert repository_type == RepositoryType.SQLALCHEMY
+
+
+def test_load_jwt_secret_rejects_empty_value(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("JWT_SECRET", "")
+    with pytest.raises(ConfigurationError):
+        load_jwt_secret()
+
+
+def test_load_access_token_expire_minutes_rejects_negative_value(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("ACCESS_TOKEN_EXPIRE_MINUTES", "-10")
+    with pytest.raises(ConfigurationError):
+        load_access_token_expire_minutes()
+
+
+def test_load_access_token_expire_minutes_rejects_zero(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("ACCESS_TOKEN_EXPIRE_MINUTES", "0")
+    with pytest.raises(ConfigurationError):
+        load_access_token_expire_minutes()
