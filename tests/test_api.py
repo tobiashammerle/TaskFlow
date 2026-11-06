@@ -4,6 +4,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from taskflow.api import app
+from taskflow.jwt_token_service import JWTTokenService
 from taskflow.routers.dependencies import (
     get_async_unit_of_work,
     get_current_user,
@@ -604,3 +605,23 @@ def test_metrics_endpoint_returns_200(client: TestClient) -> None:
     response = client.get("/metrics")
     assert response.status_code == 200
     assert "python_info" in response.text
+
+
+def test_get_tasks_with_expired_token_returns_401(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv(
+        "JWT_SECRET",
+        "test-secret-bestehend-aus-32-zeichen",
+    )
+    token_service = JWTTokenService(
+        secret="test-secret-bestehend-aus-32-zeichen",
+        access_token_expire_minutes=-1,
+    )
+    user_id = uuid4()
+    token = token_service.create_access_token(user_id)
+    with TestClient(app) as client:
+        response = client.get(
+            V1_TASKS_URL, headers={"Authorization": f"Bearer {token}"}
+        )
+        assert response.status_code == 401
