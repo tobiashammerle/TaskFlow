@@ -71,3 +71,9 @@ def test_load_access_token_expire_minutes_rejects_zero(
     monkeypatch.setenv("ACCESS_TOKEN_EXPIRE_MINUTES", "0")
     with pytest.raises(ConfigurationError):
         load_access_token_expire_minutes()
+
+
+def test_load_jwt_secret_rejects_whitespace(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("JWT_SECRET", "   ")
+    with pytest.raises(ConfigurationError):
+        load_jwt_secret()
