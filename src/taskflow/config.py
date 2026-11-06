@@ -18,7 +18,7 @@ def load_repository_type(file_path: Path) -> RepositoryType:
 
 def load_jwt_secret() -> str:
     secret = os.getenv("JWT_SECRET")
-    if secret is None:
+    if not secret:
         raise ConfigurationError("JWT_SECRET ist nicht konfiguriert.")
     return secret
 
@@ -26,7 +26,12 @@ def load_jwt_secret() -> str:
 def load_access_token_expire_minutes() -> int:
     value = os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30")
     try:
-        return int(value)
+        minutes = int(value)
+        if minutes <= 0:
+            raise ConfigurationError(
+                "ACCESS_TOKEN_EXPIRE_MINUTES muss größer als 0 sein."
+            )
+        return minutes
     except ValueError as error:
         raise ConfigurationError(
             "ACCESS_TOKEN_EXPIRE_MINUTES muss eine Ganzzahl sein."
