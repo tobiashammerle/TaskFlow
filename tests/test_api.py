@@ -136,6 +136,17 @@ def test_get_tasks_without_authentication_returns_401():
     assert response.status_code == 401
 
 
+def test_create_task_without_authentication_returns_401():
+    with TestClient(app) as client:
+        response = client.post(
+            V1_TASKS_URL,
+            json={
+                "title": "Unberechtigte Aufgabe",
+            },
+        )
+    assert response.status_code == 401
+
+
 def test_get_tasks_with_invalid_token_returns_401(monkeypatch):
     monkeypatch.setenv("JWT_SECRET", "test-secret")
     with TestClient(app) as client:
