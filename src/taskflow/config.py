@@ -18,7 +18,7 @@ def load_repository_type(file_path: Path) -> RepositoryType:
 
 def load_jwt_secret() -> str:
     secret = os.getenv("JWT_SECRET")
-    if not secret:
+    if not secret or not secret.strip():
         raise ConfigurationError("JWT_SECRET ist nicht konfiguriert.")
     return secret
 
