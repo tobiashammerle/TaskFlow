@@ -650,3 +650,35 @@ def test_complete_task_without_authentication_returns_401():
             f"{V1_TASKS_URL}/00000000-0000-0000-0000-000000000001/complete"
         )
     assert response.status_code == 401
+
+
+def test_get_open_task_count_without_authentication_returns_401():
+    with TestClient(app) as client:
+        response = client.get(f"{V1_TASKS_URL}/open/count")
+    assert response.status_code == 401
+
+
+def test_get_open_task_count_returns_zero_for_empty_repository(client):
+    response = client.get(f"{V1_TASKS_URL}/open/count")
+    assert response.status_code == 200
+    assert response.json() == {"open_tasks_count": 0}
+
+
+def test_get_open_task_count_with_completed_task(client):
+    task_ids = []
+    for i in range(3):
+        response = client.post(
+            V1_TASKS_URL,
+            json={
+                "title": f"Count Test {i + 1}",
+                "priority": "MEDIUM",
+                "due_date": "2026-09-03",
+            },
+        )
+        assert response.status_code == 201
+        task_ids.append(response.json()["id"])
+    response = client.patch(f"{V1_TASKS_URL}/{task_ids[0]}/complete")
+    assert response.status_code == 200
+    response = client.get(f"{V1_TASKS_URL}/open/count")
+    assert response.status_code == 200
+    assert response.json() == {"open_tasks_count": 2}

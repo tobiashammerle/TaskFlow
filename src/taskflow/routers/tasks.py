@@ -86,3 +86,15 @@ async def get_tasks(
     if limit is not None:
         tasks = tasks[:limit]
     return tasks
+
+
+@router.get("/open/count")
+async def get_open_task_count(
+    current_user: User = Depends(get_current_user),
+    get_tasks_use_case: AsyncGetTasks = Depends(get_async_get_tasks_use_case),
+    filter_tasks_use_case=Depends(get_filter_tasks_use_case),
+):
+    tasks = await get_tasks_use_case.execute(owner_id=current_user.id)
+    tasks = filter_tasks_use_case.execute(tasks, FilterType.OPEN)
+    open_tasks_count = len(tasks)
+    return {"open_tasks_count": open_tasks_count}
