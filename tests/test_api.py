@@ -636,3 +636,17 @@ def test_get_tasks_with_expired_token_returns_401(
             V1_TASKS_URL, headers={"Authorization": f"Bearer {token}"}
         )
         assert response.status_code == 401
+
+
+def test_delete_task_without_authentication_returns_401():
+    with TestClient(app) as client:
+        response = client.delete(f"{V1_TASKS_URL}/00000000-0000-0000-0000-000000000001")
+    assert response.status_code == 401
+
+
+def test_complete_task_without_authentication_returns_401():
+    with TestClient(app) as client:
+        response = client.patch(
+            f"{V1_TASKS_URL}/00000000-0000-0000-0000-000000000001/complete"
+        )
+    assert response.status_code == 401
